@@ -1,3 +1,4 @@
+#include <QDir>
 #include <QMdiArea>
 #include <QFileDialog>
 #include <QtDebug>
@@ -5,14 +6,16 @@
 #include "unoFileWidget.h"
 #include "unoMainWindow.h"
 #include "ui_uno_main_window.h"
-/*
-#include <sal/main.h>
-#include <cppuhelper/bootstrap.hxx>
 
+#include <sal/main.h>
+/*
+#include <cppuhelper/bootstrap.hxx>
+*/
 #include <osl/file.hxx>
 #include <osl/process.h>
 #include <rtl/process.h>
 
+/*
 #include <com/sun/star/beans/XPropertySet.hpp>
 #include <com/sun/star/bridge/XUnoUrlResolver.hpp>
 #include <com/sun/star/frame/Desktop.hpp>
@@ -39,7 +42,15 @@ UnoMainWindow::~UnoMainWindow() {
 }
 
 void UnoMainWindow::slotOpen() {
-    qDebug() << __PRETTY_FUNCTION__;
+    QString fileName = QFileDialog::getOpenFileName (
+                this,
+                tr ("Open File"),
+                QDir::currentPath(),
+                tr ("Open Document Text Files (*.odt)"));
+    qDebug() << __PRETTY_FUNCTION__ << fileName;
+    if (fileName.isEmpty())
+        return;
+
     unoFileWidget* w = new unoFileWidget;
     w->setAttribute(Qt::WA_DeleteOnClose);
     QMdiSubWindow * subW = _mdiArea->addSubWindow(w);
