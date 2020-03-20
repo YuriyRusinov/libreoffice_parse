@@ -1,5 +1,5 @@
 #include <QApplication>
-#include "unomainwindow.h"
+#include "unoMainWindow.h"
 
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);

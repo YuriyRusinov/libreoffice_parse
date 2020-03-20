@@ -1,0 +1,6 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/libre_resources">
+    <file alias="open.png">images/fileopen_28366.png</file>
+    <file alias="close.png">images/x-icon-png-8.png</file>
+</qresource>
+</RCC>

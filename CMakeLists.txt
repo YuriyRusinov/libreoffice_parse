@@ -24,7 +24,8 @@ include_directories(${PROJECT_SOURCE_DIR}
                     ${Qt5Gui_INCLUDE_DIRS})
 
 set(HEADERS
-    unomainwindow.h
+    unoMainWindow.h
+    unoFileWidget.h
 )
 
 set(FORMS
@@ -32,9 +33,15 @@ set(FORMS
 )
 
 set(SOURCES
-    unomainwindow.cpp
+    unoMainWindow.cpp
+    unoFileWidget.cpp
     main.cpp
 )
+
+set(RESOURCES
+    unoresource.qrc
+)
+
 qt5_wrap_ui(UIS_HDRS ${FORMS} )
 
 find_path(OOOSDK_UNO_DIR
@@ -137,6 +144,6 @@ endif(NOT OOoSDK_FOUND)
 
 include_directories(${OOOSDK_INCLUDE_DIRS})
 
-add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UIS_HDRS} ${OOOSDK_LIBRARIES})
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UIS_HDRS} ${RESOURCES} ${OOOSDK_LIBRARIES})
 
 target_link_libraries(${PROJECT_NAME} Qt5::Widgets)
