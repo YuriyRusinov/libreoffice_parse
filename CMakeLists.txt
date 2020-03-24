@@ -57,9 +57,12 @@ if (NOT OOOSDK_UNO_DIR)
 	set(OOOSDK_ERROR "Could not find share/misc/types.rdb for OOoSDK.")
 endif (NOT OOOSDK_UNO_DIR)
 
+#
+# Генерация необходимых для интеграции с libreoffice C++ headers: ${OOOSDK_DIR}/sdk/bin/cppumaker -O generated_files ${OOOSDK_DIR}/program/types.rdb ${OOOSDK_DIR}/program/types/oovbaapi.rdb ${OOOSDK_DIR}/program/types/offapi.rgb
+#
 find_path(OOOSDK_DIR
-	NAMES sdk/bin/cppumaker program/offapi.rdb
-	PATHS /opt/libreoffice.org/basis3.2
+        NAMES sdk/bin/cppumaker program/types.rdb program/types/oovbaapi.rdb program/types/offapi.rgb
+        PATHS /opt/libreoffice.org/basis3.2
               /usr/lib/libreoffice/
 	      /usr/lib/libreoffice/presets
 	      /usr/lib/libreoffice/program
@@ -68,49 +71,59 @@ find_path(OOOSDK_DIR
 	      /usr/lib64/libreoffice.org/program
 	      /usr/lib64/libreoffice/share
 )
-if (OOOSDK_DIR)
-	find_path(CPPUHELPER_INCLUDE_DIR
-		NAMES cppuhelper/bootstrap.hxx
-		PATHS ${OOOSDK_DIR}/sdk/include
-		      /usr/include/libreoffice
-	)
-	if (NOT CPPUHELPER_INCLUDE_DIR)
-		set(OOOSDK_ERROR 
-			"Could not find cppuhelper/bootstrap.hxx for OOoSDK.")
-	endif (NOT CPPUHELPER_INCLUDE_DIR)
+if(OOOSDK_DIR)
+    message(STATUS "cppumaker was found")
+    if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/generated_files)
+        file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/generated_files)
+    endif(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/generated_files)
 
-	find_library(OOOSDK_LIBRARIES1
-		NAMES uno_cppuhelpergcc3
-		PATHS ${OOOSDK_UNO_DIR}/lib
-		      ${OOOSDK_DIR}/sdk/lib
-		      /usr/lib/ure/lib
-	)
-	find_library(OOOSDK_LIBRARIES2
-		NAMES uno_sal
-		PATHS ${OOOSDK_UNO_DIR}/lib
-		      ${OOOSDK_DIR}/sdk/lib
-		      /usr/lib/ure/lib
-	)
-	find_library(OOOSDK_LIBRARIES3
-		NAMES uno_salhelpergcc3
-		PATHS ${OOOSDK_UNO_DIR}/lib
-		      ${OOOSDK_DIR}/sdk/lib
-		      /usr/lib/ure/lib
-	)
-	find_library(OOOSDK_LIBRARIES4
-		NAMES uno_cppu
-		PATHS ${OOOSDK_UNO_DIR}/lib
-		      ${OOOSDK_DIR}/sdk/lib
-		      /usr/lib/ure/lib
-	)
-	set(OOOSDK_LIBRARIES ${OOOSDK_LIBRARIES1} ${OOOSDK_LIBRARIES2} ${OOOSDK_LIBRARIES3} ${OOOSDK_LIBRARIES4})
-	if (NOT OOOSDK_LIBRARIES)
-		set(OOOSDK_ERROR "Could not find uno_cppuhelpergcc3 for OOoSDK.")
-	endif (NOT OOOSDK_LIBRARIES)
-else (OOOSDK_DIR)
-	set(OOOSDK_ERROR "Could not find sdk/bin/cppumaker
-		or program/offapi.rdb for OOoSDK.")
-endif (OOOSDK_DIR)
+    include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated_files)
+    add_custom_target(gen_files ALL)
+
+    add_custom_command(TARGET gen_files PRE_BUILD COMMAND ${OOOSDK_DIR}/sdk/bin/cppumaker -O ${CMAKE_CURRENT_BINARY_DIR}/generated_files ${OOOSDK_DIR}/program/types.rdb ${OOOSDK_DIR}/program/types/oovbaapi.rdb ${OOOSDK_DIR}/program/types/offapi.rdb)
+
+    find_path(CPPUHELPER_INCLUDE_DIR
+            NAMES cppuhelper/bootstrap.hxx
+            PATHS ${OOOSDK_DIR}/sdk/include
+                  /usr/include/libreoffice
+    )
+    if (NOT CPPUHELPER_INCLUDE_DIR)
+            set(OOOSDK_ERROR 
+                    "Could not find cppuhelper/bootstrap.hxx for OOoSDK.")
+    endif (NOT CPPUHELPER_INCLUDE_DIR)
+
+    find_library(OOOSDK_LIBRARIES1
+            NAMES uno_cppuhelpergcc3
+            PATHS ${OOOSDK_UNO_DIR}/lib
+                  ${OOOSDK_DIR}/sdk/lib
+                  /usr/lib/ure/lib
+    )
+    find_library(OOOSDK_LIBRARIES2
+            NAMES uno_sal
+            PATHS ${OOOSDK_UNO_DIR}/lib
+                  ${OOOSDK_DIR}/sdk/lib
+                  /usr/lib/ure/lib
+    )
+    find_library(OOOSDK_LIBRARIES3
+            NAMES uno_salhelpergcc3
+            PATHS ${OOOSDK_UNO_DIR}/lib
+                  ${OOOSDK_DIR}/sdk/lib
+                  /usr/lib/ure/lib
+    )
+    find_library(OOOSDK_LIBRARIES4
+            NAMES uno_cppu
+            PATHS ${OOOSDK_UNO_DIR}/lib
+                  ${OOOSDK_DIR}/sdk/lib
+                  /usr/lib/ure/lib
+    )
+    set(OOOSDK_LIBRARIES ${OOOSDK_LIBRARIES1} ${OOOSDK_LIBRARIES2} ${OOOSDK_LIBRARIES3} ${OOOSDK_LIBRARIES4})
+    if (NOT OOOSDK_LIBRARIES)
+            set(OOOSDK_ERROR "Could not find uno_cppuhelpergcc3 for OOoSDK.")
+    endif (NOT OOOSDK_LIBRARIES)
+else(OOOSDK_DIR)
+    set(OOOSDK_ERROR "Could not find sdk/bin/cppumaker
+            or program/offapi.rdb for OOoSDK.")
+endif(OOOSDK_DIR)
 
 if(CPPUHELPER_INCLUDE_DIR AND OOOSDK_LIBRARIES)
 #    AND OOOSDK_UNO_DIR
@@ -147,5 +160,6 @@ endif(NOT OOoSDK_FOUND)
 include_directories(${OOOSDK_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UIS_HDRS} ${RESOURCES} ${OOOSDK_LIBRARIES})
+add_dependencies(${PROJECT_NAME} gen_files)
 
 target_link_libraries(${PROJECT_NAME} Qt5::Widgets)
