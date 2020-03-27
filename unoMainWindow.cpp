@@ -30,6 +30,7 @@
 #include <com/sun/star/frame/XComponentLoader.hpp>
 #include <com/sun/star/lang/XMultiComponentFactory.hpp>
 #include <com/sun/star/registry/XSimpleRegistry.hpp>
+#include <com/sun/star/table/XTable.hpp>
 
 using namespace com::sun::star::uno;
 using namespace com::sun::star::lang;
@@ -37,7 +38,7 @@ using namespace com::sun::star::beans;
 using namespace com::sun::star::bridge;
 using namespace com::sun::star::frame;
 using namespace com::sun::star::registry;
-//using namespace com::sun::star::sdbcx;//::Table;
+using namespace com::sun::star::table;
 
 using ::rtl::OUString;
 using ::rtl::OUStringBuffer;
@@ -101,6 +102,38 @@ void UnoMainWindow::slotOpen() {
         return;
     QDataStream tstStr( &fileTest );
     tstStr.writeRawData( ba.constData(), ba.size());
+
+    Reference< XComponentContext > xComponentContext(::cppu::defaultBootstrap_InitialComponentContext());
+    /* Gets the service manager instance to be used (or null). This method has
+       been added for convenience, because the service manager is a often used
+       object.
+    */
+    Reference< XMultiComponentFactory > xMultiComponentFactoryClient(
+        xComponentContext->getServiceManager() );
+
+    /* Creates an instance of a component which supports the services specified
+       by the factory.
+    */
+    Reference< XInterface > xInterface =
+        xMultiComponentFactoryClient->createInstanceWithContext(
+            "com.sun.star.bridge.UnoUrlResolver",
+            xComponentContext );
+
+    Reference< XUnoUrlResolver > resolver( xInterface, UNO_QUERY );
+    // Resolves the component context from the office, on the uno URL given by argv[1].
+    try
+    {
+        xInterface = Reference< XInterface >(
+            resolver->resolve( sConnectionString ), UNO_QUERY );
+    }
+    catch ( Exception& e )
+    {
+        printf("Error: cannot establish a connection using '%s':\n       %s\n",
+               OUStringToOString(sConnectionString, RTL_TEXTENCODING_ASCII_US).getStr(),
+               OUStringToOString(e.Message, RTL_TEXTENCODING_ASCII_US).getStr());
+        exit(1);
+    }
+
     unoFileWidget* w = new unoFileWidget;
     w->setAttribute(Qt::WA_DeleteOnClose);
     QMdiSubWindow * subW = _mdiArea->addSubWindow(w);
