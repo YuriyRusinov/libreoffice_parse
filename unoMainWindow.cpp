@@ -77,7 +77,7 @@ void UnoMainWindow::slotOpen() {
     int nlen = fileUrl.toString().length();
     qDebug() << __PRETTY_FUNCTION__ << fileUrl.toString().toStdString().c_str() << nlen;
 
-    //OUString sConnectionString("uno:socket,host=localhost,port=2083;urp;StarOffice.ServiceManager");
+    OUString sConnectionString("uno:socket,host=localhost,port=2083;urp;StarOffice.ServiceManager");
 
     OUStringBuffer buf;
     for (int i=0; i<nlen; i++)
