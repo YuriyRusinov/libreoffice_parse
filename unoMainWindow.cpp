@@ -31,6 +31,7 @@
 #include <com/sun/star/lang/XMultiComponentFactory.hpp>
 #include <com/sun/star/registry/XSimpleRegistry.hpp>
 #include <com/sun/star/table/XTable.hpp>
+#include <com/sun/star/text/XTextDocument.hpp>
 
 using namespace com::sun::star::uno;
 using namespace com::sun::star::lang;
@@ -39,6 +40,7 @@ using namespace com::sun::star::bridge;
 using namespace com::sun::star::frame;
 using namespace com::sun::star::registry;
 using namespace com::sun::star::table;
+using namespace com::sun::star::text;
 
 using ::rtl::OUString;
 using ::rtl::OUStringBuffer;
@@ -78,7 +80,20 @@ void UnoMainWindow::slotOpen() {
     qDebug() << __PRETTY_FUNCTION__ << fileUrl.toString().toStdString().c_str() << nlen;
 
     OUString sConnectionString("uno:socket,host=localhost,port=2083;urp;StarOffice.ServiceManager");
-
+    sal_Int32 nCount = (sal_Int32)rtl_getAppCommandArgCount();
+    qDebug() << __PRETTY_FUNCTION__ << (int)nCount;
+/*
+    if (nCount < 1)
+    {
+        printf("using: DocumentLoader -env:URE_MORE_TYPES=<office_types_rdb_url> <file_url> [<uno_connection_url>]\n\n"
+               "example: DocumentLoader -env:URE_MORE_TYPES=\"file:///.../program/offapi.rdb\" \"file:///e:/temp/test.odt\" \"uno:socket,host=localhost,port=2083;urp;StarOffice.ServiceManager\"\n");
+        exit(1);
+    }
+    if (nCount == 2)
+    {
+        rtl_getAppCommandArg(1, &sConnectionString.pData);
+    }
+*/
     OUStringBuffer buf;
     for (int i=0; i<nlen; i++)
         buf.append( fileUrl.toString().toStdString().at(i) );
@@ -103,21 +118,40 @@ void UnoMainWindow::slotOpen() {
     QDataStream tstStr( &fileTest );
     tstStr.writeRawData( ba.constData(), ba.size());
 
-    Reference< XComponentContext > xComponentContext(::cppu::defaultBootstrap_InitialComponentContext());
+
+    Reference< XComponentContext > xComponentContext( ::cppu::bootstrap() );
+//            ::cppu::defaultBootstrap_InitialComponentContext());
     /* Gets the service manager instance to be used (or null). This method has
        been added for convenience, because the service manager is a often used
        object.
     */
-    Reference< XMultiComponentFactory > xMultiComponentFactoryClient(
-        xComponentContext->getServiceManager() );
 
+    Reference< XMultiComponentFactory > xServiceManager(
+            xComponentContext->getServiceManager() );
+
+    // get an instance of the remote office desktop UNO service
+    // and query the XComponentLoader interface
+    Reference < XComponentLoader > xComponentLoader(
+            xServiceManager->createInstanceWithContext( OUString(
+            RTL_CONSTASCII_USTRINGPARAM( "com.sun.star.frame.Desktop" ) ),
+            xComponentContext ), UNO_QUERY_THROW );
+    Reference< XComponent > xComponent = xComponentLoader->loadComponentFromURL(
+        buf.toString(), OUString( "_blank" ), 0,
+        Sequence < ::com::sun::star::beans::PropertyValue >() );
+
+#if 0
+/*    Reference< XMultiComponentFactory > xMultiComponentFactoryClient(
+        xComponentContext->getServiceManager() );
+*/
     /* Creates an instance of a component which supports the services specified
        by the factory.
     */
-    Reference< XInterface > xInterface =
+/*    Reference< XInterface > xInterface =
         xMultiComponentFactoryClient->createInstanceWithContext(
             "com.sun.star.bridge.UnoUrlResolver",
             xComponentContext );
+
+    //Reference< XTextDocument > xTxt = 
 
     Reference< XUnoUrlResolver > resolver( xInterface, UNO_QUERY );
     // Resolves the component context from the office, on the uno URL given by argv[1].
@@ -133,7 +167,19 @@ void UnoMainWindow::slotOpen() {
                OUStringToOString(e.Message, RTL_TEXTENCODING_ASCII_US).getStr());
         exit(1);
     }
+    Reference< XPropertySet > xPropSet( xInterface, UNO_QUERY );
+    xPropSet->getPropertyValue("DefaultContext") >>= xComponentContext;
 
+    // gets the service manager from the office
+    Reference< XMultiComponentFactory > xMultiComponentFactoryServer(
+        xComponentContext->getServiceManager() );
+*/
+    /* Creates an instance of a component which supports the services specified
+       by the factory. Important: using the office component context.
+    */
+/*    Reference < XDesktop2 > xComponentLoader = Desktop::create(xComponentContext);
+*/
+#endif
     unoFileWidget* w = new unoFileWidget;
     w->setAttribute(Qt::WA_DeleteOnClose);
     QMdiSubWindow * subW = _mdiArea->addSubWindow(w);
