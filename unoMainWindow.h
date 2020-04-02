@@ -3,6 +3,7 @@
 #include <QMainWindow>
 
 class QMdiArea;
+class QProcess;
 
 namespace Ui{
     class uno_main_window;
@@ -24,4 +25,5 @@ private slots:
 private:
     Ui::uno_main_window* UI;
     QMdiArea* _mdiArea;
+    QProcess* _sofficeProc;
 };

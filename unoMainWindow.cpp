@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QDataStream>
 #include <QUrl>
+#include <QProcess>
 #include <QtDebug>
 
 #include <sstream>
@@ -52,10 +53,13 @@ using std::endl;
 UnoMainWindow::UnoMainWindow(QWidget *parent)
     : QMainWindow(parent),
     UI(new Ui::uno_main_window),
-    _mdiArea(new QMdiArea)
+    _mdiArea(new QMdiArea),
+    _sofficeProc(new QProcess)
 {
     UI->setupUi(this);
     setCentralWidget(_mdiArea);
+    connect(_sofficeProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+    [=](int exitCode, QProcess::ExitStatus exitStatus){ qDebug() << __PRETTY_FUNCTION__; });
 
     QObject::connect(UI->actOpen, &QAction::triggered, this, &UnoMainWindow::slotOpen);
     QObject::connect(UI->actQuit, &QAction::triggered, this, &QMainWindow::close);
@@ -78,6 +82,15 @@ void UnoMainWindow::slotOpen() {
     QUrl fileUrl=QUrl::fromLocalFile(fileName);
     int nlen = fileUrl.toString().length();
     qDebug() << __PRETTY_FUNCTION__ << fileUrl.toString().toStdString().c_str() << nlen;
+    if (_sofficeProc->state() == QProcess::NotRunning) {
+        QString program = "soffice";
+        _sofficeProc->setWorkingDirectory("/usr/bin");
+        _sofficeProc->setProgram(program);
+        QStringList arguments;
+        arguments << "--accept=socket,host=localhost,port=2083;urp;StarOffice.ServiceManager";
+        _sofficeProc->setArguments(arguments);
+        _sofficeProc->start(program, arguments);
+    }
 
     OUString sConnectionString("uno:socket,host=localhost,port=2083;urp;StarOffice.ServiceManager");
     sal_Int32 nCount = (sal_Int32)rtl_getAppCommandArgCount();
@@ -118,38 +131,50 @@ void UnoMainWindow::slotOpen() {
     QDataStream tstStr( &fileTest );
     tstStr.writeRawData( ba.constData(), ba.size());
 
-
     Reference< XComponentContext > xComponentContext( ::cppu::bootstrap() );
 //            ::cppu::defaultBootstrap_InitialComponentContext());
     /* Gets the service manager instance to be used (or null). This method has
        been added for convenience, because the service manager is a often used
        object.
     */
-
-    Reference< XMultiComponentFactory > xServiceManager(
-            xComponentContext->getServiceManager() );
+    Reference< XMultiComponentFactory > xMultiComponentFactoryClient(
+        xComponentContext->getServiceManager() );
+    /* Creates an instance of a component which supports the services specified
+       by the factory.
+    */
+    Reference< XInterface > xInterface =
+        xMultiComponentFactoryClient->createInstanceWithContext(
+            "com.sun.star.bridge.UnoUrlResolver",
+            xComponentContext );
 
     // get an instance of the remote office desktop UNO service
     // and query the XComponentLoader interface
     Reference < XComponentLoader > xComponentLoader(
-            xServiceManager->createInstanceWithContext( OUString(
+            xMultiComponentFactoryClient->createInstanceWithContext( OUString(
             RTL_CONSTASCII_USTRINGPARAM( "com.sun.star.frame.Desktop" ) ),
             xComponentContext ), UNO_QUERY_THROW );
+    Reference< XUnoUrlResolver > resolver( xInterface, UNO_QUERY );
+
+    // Resolves the component context from the office, on the uno URL given by argv[1].
+
+    try
+    {
+        xInterface = Reference< XInterface >(
+            resolver->resolve( sConnectionString ), UNO_QUERY );
+    }
+    catch ( Exception& e )
+    {
+        printf("Error: cannot establish a connection using '%s':\n       %s\n",
+               OUStringToOString(sConnectionString, RTL_TEXTENCODING_ASCII_US).getStr(),
+               OUStringToOString(e.Message, RTL_TEXTENCODING_ASCII_US).getStr());
+        exit(1);
+    }
+
     Reference< XComponent > xComponent = xComponentLoader->loadComponentFromURL(
         buf.toString(), OUString( "_blank" ), 0,
         Sequence < ::com::sun::star::beans::PropertyValue >() );
 
 #if 0
-/*    Reference< XMultiComponentFactory > xMultiComponentFactoryClient(
-        xComponentContext->getServiceManager() );
-*/
-    /* Creates an instance of a component which supports the services specified
-       by the factory.
-    */
-/*    Reference< XInterface > xInterface =
-        xMultiComponentFactoryClient->createInstanceWithContext(
-            "com.sun.star.bridge.UnoUrlResolver",
-            xComponentContext );
 
     //Reference< XTextDocument > xTxt = 
 
@@ -180,6 +205,7 @@ void UnoMainWindow::slotOpen() {
 /*    Reference < XDesktop2 > xComponentLoader = Desktop::create(xComponentContext);
 */
 #endif
+
     unoFileWidget* w = new unoFileWidget;
     w->setAttribute(Qt::WA_DeleteOnClose);
     QMdiSubWindow * subW = _mdiArea->addSubWindow(w);
