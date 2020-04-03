@@ -15,7 +15,7 @@ endif()
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-add_definitions(-D SAL_UNX)
+add_definitions(-D SAL_UNX -D _UNO_TEST_)
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 

@@ -124,12 +124,18 @@ void UnoMainWindow::slotOpen() {
     cerr << __PRETTY_FUNCTION__ << ' ' << fileSize << ' ' << readBytes << ' ' << res << ' ' << osl::FileBase::E_None << endl;
 
     osf.close();
+
+/*
+ *  For tests
+ */
+#ifdef _UNO_TEST_
     QByteArray ba = QByteArray::fromRawData( static_cast<const char*>(fileContent), readBytes );
     QFile fileTest("ttt.odt");
     if (!fileTest.open(QIODevice::WriteOnly))
         return;
     QDataStream tstStr( &fileTest );
     tstStr.writeRawData( ba.constData(), ba.size());
+#endif
 
     Reference< XComponentContext > xComponentContext( ::cppu::bootstrap() );
 //            ::cppu::defaultBootstrap_InitialComponentContext());
@@ -147,16 +153,9 @@ void UnoMainWindow::slotOpen() {
             "com.sun.star.bridge.UnoUrlResolver",
             xComponentContext );
 
-    // get an instance of the remote office desktop UNO service
-    // and query the XComponentLoader interface
-    Reference < XComponentLoader > xComponentLoader(
-            xMultiComponentFactoryClient->createInstanceWithContext( OUString(
-            RTL_CONSTASCII_USTRINGPARAM( "com.sun.star.frame.Desktop" ) ),
-            xComponentContext ), UNO_QUERY_THROW );
     Reference< XUnoUrlResolver > resolver( xInterface, UNO_QUERY );
 
     // Resolves the component context from the office, on the uno URL given by argv[1].
-
     try
     {
         xInterface = Reference< XInterface >(
@@ -170,41 +169,32 @@ void UnoMainWindow::slotOpen() {
         exit(1);
     }
 
-    Reference< XComponent > xComponent = xComponentLoader->loadComponentFromURL(
-        buf.toString(), OUString( "_blank" ), 0,
-        Sequence < ::com::sun::star::beans::PropertyValue >() );
-
-#if 0
-
-    //Reference< XTextDocument > xTxt = 
-
-    Reference< XUnoUrlResolver > resolver( xInterface, UNO_QUERY );
-    // Resolves the component context from the office, on the uno URL given by argv[1].
-    try
-    {
-        xInterface = Reference< XInterface >(
-            resolver->resolve( sConnectionString ), UNO_QUERY );
-    }
-    catch ( Exception& e )
-    {
-        printf("Error: cannot establish a connection using '%s':\n       %s\n",
-               OUStringToOString(sConnectionString, RTL_TEXTENCODING_ASCII_US).getStr(),
-               OUStringToOString(e.Message, RTL_TEXTENCODING_ASCII_US).getStr());
-        exit(1);
-    }
+    // gets the server component context as property of the office component factory
     Reference< XPropertySet > xPropSet( xInterface, UNO_QUERY );
     xPropSet->getPropertyValue("DefaultContext") >>= xComponentContext;
 
     // gets the service manager from the office
     Reference< XMultiComponentFactory > xMultiComponentFactoryServer(
         xComponentContext->getServiceManager() );
-*/
-    /* Creates an instance of a component which supports the services specified
-       by the factory. Important: using the office component context.
-    */
-/*    Reference < XDesktop2 > xComponentLoader = Desktop::create(xComponentContext);
-*/
-#endif
+
+    // get an instance of the remote office desktop UNO service
+    // and query the XComponentLoader interface
+    Reference < XDesktop2 > xComponentLoader = Desktop::create(xComponentContext);
+    cerr << __PRETTY_FUNCTION__ << "Name of " << xComponentLoader->getName().toAsciiLowerCase ();// getStr();
+//
+//  From wiki.openoffice.org for tests
+//
+//    Reference < XComponentLoader > xComponentLoader(
+//            xMultiComponentFactoryClient->createInstanceWithContext( OUString(
+//            RTL_CONSTASCII_USTRINGPARAM( "com.sun.star.frame.Desktop" ) ),
+//            xComponentContext ), UNO_QUERY_THROW );
+
+    Reference< XComponent > xComponent = xComponentLoader->loadComponentFromURL(
+        buf.toString(), OUString( "_blank" ), 0,
+        Sequence < ::com::sun::star::beans::PropertyValue >() );
+
+    // dispose the local service manager
+    //Reference< XComponent >::query( xMultiComponentFactoryClient )->dispose();
 
     unoFileWidget* w = new unoFileWidget;
     w->setAttribute(Qt::WA_DeleteOnClose);
