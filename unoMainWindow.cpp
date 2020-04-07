@@ -21,7 +21,6 @@ UnoMainWindow::UnoMainWindow(QWidget *parent)
     : QMainWindow(parent),
     UI(new Ui::uno_main_window),
     _mdiArea(new QMdiArea),
-    _sofficeProc(new QProcess),
     _sConnectionString("uno:socket,host=localhost,port=2083;urp;StarOffice.ServiceManager"),
     _xComponentContext( ::cppu::bootstrap() ),
     /* Gets the service manager instance to be used (or null). This method has
@@ -48,21 +47,6 @@ UnoMainWindow::UnoMainWindow(QWidget *parent)
 {
     UI->setupUi(this);
     setCentralWidget(_mdiArea);
-    connect(_sofficeProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-            this,
-            QOverload<int, QProcess::ExitStatus>::of(&UnoMainWindow::slotSofficeFin)
-           );
-    QString program = "soffice";
-    _sofficeProc->setWorkingDirectory("/usr/bin");
-    _sofficeProc->setProgram(program);
-    QStringList arguments;
-    arguments << "--accept=socket,host=localhost,port=2083;urp;StarOffice.ServiceManager";
-    _sofficeProc->setArguments(arguments);
-    _sofficeProc->start(program, arguments);
-    if (_sofficeProc->state() == QProcess::NotRunning) {
-        qDebug () << __PRETTY_FUNCTION__ << "Cannot run soffice error code is " << _sofficeProc->error();
-        return;
-    }
 
     // Resolves the component context from the office, on the uno URL given by argv[1].
     try
@@ -181,6 +165,3 @@ void UnoMainWindow::slotOpen() {
     operator delete( fileContent );
 }
 
-void UnoMainWindow::slotSofficeFin(int exitCode, QProcess::ExitStatus exitStatus) {
-    qDebug () << __PRETTY_FUNCTION__ << exitCode << exitStatus;
-}

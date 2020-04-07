@@ -28,6 +28,7 @@ include_directories(${PROJECT_SOURCE_DIR}
 set(HEADERS
     unoMainWindow.h
     unoFileWidget.h
+    unoSingleton.h
 )
 
 set(FORMS
@@ -37,6 +38,7 @@ set(FORMS
 set(SOURCES
     unoMainWindow.cpp
     unoFileWidget.cpp
+    unoSingleton.cpp
     main.cpp
 )
 

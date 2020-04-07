@@ -41,6 +41,8 @@ using ::rtl::OUStringToOString;
 
 class QMdiArea;
 
+class UnoSingleton;
+
 namespace Ui{
     class uno_main_window;
 };
@@ -57,12 +59,11 @@ signals:
 public slots:
 private slots:
     void slotOpen();
-    void slotSofficeFin(int exitCode, QProcess::ExitStatus exitStatus);
 
 private:
     Ui::uno_main_window* UI;
     QMdiArea* _mdiArea;
-    QProcess* _sofficeProc;
+//    QProcess* _sofficeProc;
 
     OUString _sConnectionString;
     Reference< XComponentContext > _xComponentContext;
