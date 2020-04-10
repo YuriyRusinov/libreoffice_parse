@@ -42,6 +42,7 @@ void UnoSingleton::initProc(const QString& program, const QStringList& arguments
 }
 
 void UnoSingleton::startProc() {
+    qDebug () << __PRETTY_FUNCTION__;
     _sofficeProc->start();
     if (_sofficeProc->state() == QProcess::NotRunning) {
         qDebug () << __PRETTY_FUNCTION__ << "Cannot run soffice error code is " << _sofficeProc->error();
