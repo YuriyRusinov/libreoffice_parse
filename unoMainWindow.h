@@ -63,7 +63,6 @@ private slots:
 private:
     Ui::uno_main_window* UI;
     QMdiArea* _mdiArea;
-//    QProcess* _sofficeProc;
 
     OUString _sConnectionString;
     Reference< XComponentContext > _xComponentContext;

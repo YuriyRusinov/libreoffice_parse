@@ -7,6 +7,8 @@ int main(int argc, char* argv[]) {
     UnoSingleton* _unoSingleton = UnoSingleton::getUnoS(&app);
     QString program = "/usr/bin/soffice";
     QStringList arguments;
+    //arguments << "--invisible";
+    arguments << "--nologo" << "--nodefault" << "--norestore" << "--nolockcheck";
     arguments << "--accept=socket,host=localhost,port=2083;urp;StarOffice.ServiceManager";
     _unoSingleton->initProc(program, arguments);
     _unoSingleton->startProc();

@@ -21,8 +21,9 @@ UnoSingleton::UnoSingleton(QObject* parent)
 }
 
 UnoSingleton::~UnoSingleton() {
-    qDebug() << __PRETTY_FUNCTION__;
-    _sofficeProc->waitForFinished(5000);
+    qint64 sofficePid = _sofficeProc->processId();
+    qDebug() << __PRETTY_FUNCTION__ << sofficePid;
+    _sofficeProc->kill();//waitForFinished(5000);
     _sofficeProc->setParent(nullptr);
     delete _sofficeProc;
     _instance = nullptr;
@@ -43,7 +44,7 @@ void UnoSingleton::initProc(const QString& program, const QStringList& arguments
 
 void UnoSingleton::startProc() {
     qDebug () << __PRETTY_FUNCTION__;
-    _sofficeProc->start();
+    _sofficeProc->start();//Detached();
     if (_sofficeProc->state() == QProcess::NotRunning) {
         qDebug () << __PRETTY_FUNCTION__ << "Cannot run soffice error code is " << _sofficeProc->error();
         return;
@@ -52,6 +53,8 @@ void UnoSingleton::startProc() {
 
 void UnoSingleton::slotProcEnd(int exitCode, QProcess::ExitStatus exitStatus) {
     qDebug () << __PRETTY_FUNCTION__ << exitCode << exitStatus;
+//    if (exitCode == 0)
+//        startProc();
 }
 
 QProcess* UnoSingleton::getProc() const {

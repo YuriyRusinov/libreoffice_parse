@@ -86,20 +86,6 @@ void UnoMainWindow::slotOpen() {
     QUrl fileUrl=QUrl::fromLocalFile(fileName);
     int nlen = fileUrl.toString().length();
     qDebug() << __PRETTY_FUNCTION__ << fileUrl.toString().toStdString().c_str() << nlen;
-//    sal_Int32 nCount = (sal_Int32)rtl_getAppCommandArgCount();
-//    qDebug() << __PRETTY_FUNCTION__ << (int)nCount;
-/*
-    if (nCount < 1)
-    {
-        printf("using: DocumentLoader -env:URE_MORE_TYPES=<office_types_rdb_url> <file_url> [<uno_connection_url>]\n\n"
-               "example: DocumentLoader -env:URE_MORE_TYPES=\"file:///.../program/offapi.rdb\" \"file:///e:/temp/test.odt\" \"uno:socket,host=localhost,port=2083;urp;StarOffice.ServiceManager\"\n");
-        exit(1);
-    }
-    if (nCount == 2)
-    {
-        rtl_getAppCommandArg(1, &_sConnectionString.pData);
-    }
-*/
     OUStringBuffer buf;
     for (int i=0; i<nlen; i++)
         buf.append( fileUrl.toString().toStdString().at(i) );
@@ -129,21 +115,6 @@ void UnoMainWindow::slotOpen() {
     QDataStream tstStr( &fileTest );
     tstStr.writeRawData( ba.constData(), ba.size());
 #endif
-/*    try
-    {
-        _xInterface = Reference< XInterface >(
-            _resolver->resolve( _sConnectionString ), UNO_QUERY );
-    }
-    catch ( Exception& e )
-    {
-        printf("Error: cannot establish a connection using '%s':\n       %s\n",
-               OUStringToOString(_sConnectionString, RTL_TEXTENCODING_ASCII_US).getStr(),
-               OUStringToOString(e.Message, RTL_TEXTENCODING_ASCII_US).getStr());
-        return;
-    }
-
-    _xPropSet->getPropertyValue("DefaultContext") >>= _xComponentContext;
-*/
     cerr << __PRETTY_FUNCTION__ << "Name of " << _xComponentLoader->getName().toAsciiLowerCase () << endl;
     // getStr();
 //
@@ -157,6 +128,13 @@ void UnoMainWindow::slotOpen() {
     Reference< XComponent > xComponent = _xComponentLoader->loadComponentFromURL(
         buf.toString(), OUString( "_blank" ), 0,
         Sequence < ::com::sun::star::beans::PropertyValue >() );
+//
+//  TODO: отладить загрузку текстового документа
+//    com::sun::star::uno::Type t (14);
+//    OUString typeName = "textDocument";
+//    Reference< XTextDocument > xTextDoc = _xInterface->queryInterface( t, typeName);
+//    //com::sun::star::uno::Type(14) );
+//    //"com.sun.star.text.XTextDocument" );
 
     unoFileWidget* w = new unoFileWidget;
     w->setAttribute(Qt::WA_DeleteOnClose);
