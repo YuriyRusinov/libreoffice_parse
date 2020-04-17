@@ -24,6 +24,7 @@
 #include <com/sun/star/lang/XMultiComponentFactory.hpp>
 #include <com/sun/star/registry/XSimpleRegistry.hpp>
 #include <com/sun/star/table/XTable.hpp>
+#include <com/sun/star/text/XTextTable.hpp>
 #include <com/sun/star/text/XTextDocument.hpp>
 
 using namespace com::sun::star::uno;
@@ -61,9 +62,13 @@ private slots:
     void slotOpen();
 
 private:
-    Ui::uno_main_window* UI;
+    void initUno();
+
+private:
+    Ui::uno_main_window* _UI;
     QMdiArea* _mdiArea;
 
+    bool _isInit;
     OUString _sConnectionString;
     Reference< XComponentContext > _xComponentContext;
     Reference< XMultiComponentFactory > _xMultiComponentFactoryClient;

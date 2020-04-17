@@ -10,6 +10,8 @@ public:
     explicit unoFileWidget(QWidget* parent=nullptr, Qt::WindowFlags flags=Qt::WindowFlags());
     virtual ~unoFileWidget();
 
+    void setText(const QString& text);
+
 private slots:
     void slotFileOpen();
     void slotFileClose();

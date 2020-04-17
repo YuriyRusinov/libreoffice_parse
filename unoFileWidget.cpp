@@ -36,3 +36,7 @@ void unoFileWidget::slotFileClose() {
         parentWidget()->close();
     close();
 }
+
+void unoFileWidget::setText(const QString& text) {
+    _fileEditW->setPlainText(text);
+}
