@@ -1,9 +1,20 @@
+/*
+ * Widget, выводящий необходимые параметры загруженного файла и список
+ * таблиц
+ *
+ * (C) НПО Рубин
+ * @author:
+ *   Ю.Л.Русинов
+ */
+
 #pragma once
 
 #include <QWidget>
 
 class QToolBar;
 class QTextEdit;
+class QTreeView;
+class QAbstractItemModel;
 
 class unoFileWidget : public QWidget {
 public:
@@ -11,6 +22,7 @@ public:
     virtual ~unoFileWidget();
 
     void setText(const QString& text);
+    void setTablesModel(QAbstractItemModel* tableListModel);
 
 private slots:
     void slotFileOpen();
@@ -19,6 +31,7 @@ private slots:
 private:
     QToolBar* _tbActions;
     QTextEdit* _fileEditW;
+    QTreeView* _tvTables;
 
 private:
     Q_OBJECT

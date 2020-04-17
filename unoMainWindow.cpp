@@ -1,3 +1,4 @@
+#include <QAbstractItemModel>
 #include <QDir>
 #include <QMdiArea>
 #include <QFileDialog>
@@ -8,14 +9,19 @@
 
 #include <sstream>
 #include <iostream>
+#include <vector>
+#include <string>
 
 #include "unoFileWidget.h"
 #include "unoMainWindow.h"
+#include "unoTablesModel.h"
 #include "ui_uno_main_window.h"
 
 using std::stringstream;
 using std::cerr;
 using std::endl;
+using std::vector;
+using std::string;
 
 UnoMainWindow::UnoMainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -80,8 +86,6 @@ void UnoMainWindow::slotOpen() {
     QDataStream tstStr( &fileTest );
     tstStr.writeRawData( ba.constData(), ba.size());
 #endif
-//    cerr << __PRETTY_FUNCTION__ << "Name of " << _xComponentLoader->getName().toAsciiLowerCase () << endl;
-    // getStr();
 //
 //  From wiki.openoffice.org for tests
 //
@@ -89,23 +93,53 @@ void UnoMainWindow::slotOpen() {
 //            xMultiComponentFactoryClient->createInstanceWithContext( OUString(
 //            RTL_CONSTASCII_USTRINGPARAM( "com.sun.star.frame.Desktop" ) ),
 //            xComponentContext ), UNO_QUERY_THROW );
+//
     Reference< XComponent > xComponent = _xComponentLoader->loadComponentFromURL(
         buf.toString(), OUString( "_blank" ), 0,
         Sequence < ::com::sun::star::beans::PropertyValue >() );
-//
-//  TODO: отладить загрузку текстового документа
-//
     Reference< XTextDocument > xTextDoc (xComponent, UNO_QUERY );
     qDebug() << __PRETTY_FUNCTION__ << xTextDoc.get();
     Reference< XText > xText = xTextDoc->getText();
-    cerr << __PRETTY_FUNCTION__ << xText->getString() << endl;
+//
+//  For debug purposes
+//
+//    cerr << __PRETTY_FUNCTION__ << " " << xText->getString() << endl;
     stringstream textStr;
     textStr << xText->getString();
-    Reference< XTextTable > xTextTables (xComponent, UNO_QUERY );
-    qDebug () << __PRETTY_FUNCTION__ << xTextTables.get();
+    Reference< XMultiServiceFactory > xMultiServ (xTextDoc, UNO_QUERY );
+    qDebug() << __PRETTY_FUNCTION__ << "Document multiservice factory is " << xMultiServ.get();
+    Reference< XTextTablesSupplier > xTextTablesSuppl (xTextDoc, UNO_QUERY );
+    qDebug() << __PRETTY_FUNCTION__ << "Tables supplier is " << xTextTablesSuppl.get();
+    Reference< XNameAccess > xNamedTables = xTextTablesSuppl->getTextTables();
+    qDebug() << __PRETTY_FUNCTION__ << "Named Tables list is " << xNamedTables.get();
+    Sequence < ::rtl::OUString > tSeq = xNamedTables->getElementNames();
+    qDebug() << __PRETTY_FUNCTION__ << "Number of tables is " << tSeq.getLength();
+    QStringList tableNames;
+    vector< Reference< XTextTable > > xTablesVec;
+    for (::rtl::OUString* ptab = tSeq.begin();
+            ptab != tSeq.end();
+            ptab++) {
+        stringstream tableStr;
+        tableStr << *ptab;
+        QString tableName = QString::fromStdString(tableStr.str());
+        tableNames.append(tableName);
+        Any any = xNamedTables->getByName(*ptab);
+        Reference< XTextTable > xTable(any, UNO_QUERY);
+        xTablesVec.push_back( xTable );
+        qDebug() << __PRETTY_FUNCTION__ << tableName << xTable.get();
+    }
+
+    QAbstractItemModel* tModel = new unoTablesModel(tableNames, xTablesVec);
+
+    //Reference< XTextTable > xTextTables ( XTextTable(
+    //        xMultiServ->createInstance(
+    //            "com.sun.star.text.TextTable" ));
+    //        );
+    //qDebug() << __PRETTY_FUNCTION__ << xTextTables.get();
 
     unoFileWidget* w = new unoFileWidget;
     w->setText(QString::fromStdString(textStr.str()));
+    w->setTablesModel(tModel);
     w->setAttribute(Qt::WA_DeleteOnClose);
     QMdiSubWindow * subW = _mdiArea->addSubWindow(w);
     w->show();

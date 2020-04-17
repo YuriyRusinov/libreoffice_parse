@@ -1,5 +1,9 @@
 /*
  * Заголовочный файл главного окна тестового приложения
+ * (C) НПО Рубин
+ *
+ * @author:
+ *     Ю.Л.Русинов
  */
 
 #pragma once
@@ -26,6 +30,9 @@
 #include <com/sun/star/table/XTable.hpp>
 #include <com/sun/star/text/XTextTable.hpp>
 #include <com/sun/star/text/XTextDocument.hpp>
+#include <com/sun/star/text/XTextTablesSupplier.hpp>
+#include <com/sun/star/lang/XMultiServiceFactory.hpp>
+#include <com/sun/star/container/XNameAccess.hpp>
 
 using namespace com::sun::star::uno;
 using namespace com::sun::star::lang;
@@ -35,6 +42,8 @@ using namespace com::sun::star::frame;
 using namespace com::sun::star::registry;
 using namespace com::sun::star::table;
 using namespace com::sun::star::text;
+using namespace com::sun::star::lang;
+using namespace com::sun::star::container;
 
 using ::rtl::OUString;
 using ::rtl::OUStringBuffer;
