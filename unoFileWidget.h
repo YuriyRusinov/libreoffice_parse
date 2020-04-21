@@ -15,6 +15,7 @@ class QToolBar;
 class QTextEdit;
 class QTreeView;
 class QAbstractItemModel;
+class QSplitter;
 
 class unoFileWidget : public QWidget {
 public:
@@ -30,6 +31,7 @@ private slots:
 
 private:
     QToolBar* _tbActions;
+    QSplitter* _spView;
     QTextEdit* _fileEditW;
     QTreeView* _tvTables;
 

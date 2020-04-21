@@ -27,8 +27,10 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
 private:
-    QStringList tableNames_;
-    vector< Reference< XTextTable > > xTablesRef_;
+    QStringList _tableNames;
+    vector< Reference< XTextTable > > _xTablesRef;
+    vector< int > _tableCols;
+    vector< int > _tableRows;
 
 private:
     Q_OBJECT

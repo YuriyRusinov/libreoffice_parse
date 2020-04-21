@@ -9,6 +9,7 @@
 #include <QAbstractItemModel>
 #include <QAction>
 #include <QGridLayout>
+#include <QSplitter>
 #include <QTextEdit>
 #include <QToolBar>
 #include <QTreeView>
@@ -19,12 +20,14 @@
 unoFileWidget::unoFileWidget(QWidget* parent, Qt::WindowFlags flags)
     : QWidget(parent, flags),
     _tbActions(new QToolBar),
+    _spView(new QSplitter),
     _fileEditW(new QTextEdit),
     _tvTables(new QTreeView) {
     QGridLayout * gridLay = new QGridLayout(this);
     gridLay->addWidget(_tbActions, 0, 0, 1, 2);
-    gridLay->addWidget(_fileEditW, 1, 0, 1, 1);
-    gridLay->addWidget(_tvTables, 1, 1, 1, 1);
+    gridLay->addWidget(_spView, 1, 0, 1, 2);
+    _spView->addWidget(_fileEditW);
+    _spView->addWidget(_tvTables);
 
     QAction* actOpen  = _tbActions->addAction(QIcon(":/libre_resources/open.png"), tr("Open ..."));
     QAction* actClose = _tbActions->addAction(QIcon(":/libre_resources/close.png"), tr("Close"));
@@ -34,6 +37,9 @@ unoFileWidget::unoFileWidget(QWidget* parent, Qt::WindowFlags flags)
 }
 
 unoFileWidget::~unoFileWidget() {
+    delete _tvTables;
+    delete _fileEditW;
+    delete _spView;
     delete _tbActions;
 }
 
