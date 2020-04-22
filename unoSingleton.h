@@ -2,6 +2,10 @@
  * Синглтон библиотеки, запускающий необходимое фоновое приложение 
  * e.g. soffice
  *
+ * (C) НПО Рубин
+ *
+ * @author:
+ *     Ю.Л.Русинов
  */
 #pragma once
 
@@ -9,6 +13,8 @@
 #include <QProcess>
 
 class QProcess;
+
+class unoFileObject;
 
 class UnoSingleton : public QObject {
 public:
@@ -18,6 +24,7 @@ public:
     void startProc();
 
     QProcess* getProc() const;
+    unoFileObject* getUnoFileObj(QObject* parent=nullptr) const;
 
 private slots:
     void slotProcEnd(int exitCode, QProcess::ExitStatus exitStatus);
@@ -29,6 +36,7 @@ private:
     ~UnoSingleton();
 
     QProcess* _sofficeProc;
+    mutable unoFileObject* _unoFileObj;
 
     static UnoSingleton* _instance;
 private:

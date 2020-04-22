@@ -1,13 +1,15 @@
 #include <QtGlobal>
 #include <QtDebug>
 
+#include "unoFileObject.h"
 #include "unoSingleton.h"
 
 UnoSingleton* UnoSingleton::_instance = nullptr;
 
 UnoSingleton::UnoSingleton(QObject* parent)
     : QObject(parent),
-    _sofficeProc(new QProcess(this))
+    _sofficeProc(new QProcess(this)),
+    _unoFileObj(nullptr)
 {
     if (_instance) {
         qFatal("There should be only one UnoSingleton object");
@@ -61,4 +63,13 @@ void UnoSingleton::slotProcEnd(int exitCode, QProcess::ExitStatus exitStatus) {
 
 QProcess* UnoSingleton::getProc() const {
     return _sofficeProc;
+}
+
+unoFileObject* UnoSingleton::getUnoFileObj(QObject* parent) const {
+    if (!_unoFileObj)
+        _unoFileObj = new unoFileObject(parent);
+    else
+        _unoFileObj->setParent(parent);
+
+    return _unoFileObj;
 }

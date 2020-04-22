@@ -11,49 +11,10 @@
 #include <QMainWindow>
 #include <QProcess>
 
-#include <sal/main.h>
-
-#include <cppuhelper/bootstrap.hxx>
-#include <osl/file.hxx>
-#include <osl/process.h>
-#include <rtl/process.h>
-#include <rtl/string.h>
-#include <rtl/ustrbuf.hxx>
-#include <rtl/byteseq.h>
-
-#include <com/sun/star/beans/XPropertySet.hpp>
-#include <com/sun/star/bridge/XUnoUrlResolver.hpp>
-#include <com/sun/star/frame/Desktop.hpp>
-#include <com/sun/star/frame/XComponentLoader.hpp>
-#include <com/sun/star/lang/XMultiComponentFactory.hpp>
-#include <com/sun/star/registry/XSimpleRegistry.hpp>
-#include <com/sun/star/table/XTable.hpp>
-#include <com/sun/star/table/XTableColumns.hpp>
-#include <com/sun/star/table/XTableRows.hpp>
-#include <com/sun/star/text/XTextTable.hpp>
-#include <com/sun/star/text/XTextDocument.hpp>
-#include <com/sun/star/text/XTextTablesSupplier.hpp>
-#include <com/sun/star/lang/XMultiServiceFactory.hpp>
-#include <com/sun/star/container/XNameAccess.hpp>
-
-using namespace com::sun::star::uno;
-using namespace com::sun::star::lang;
-using namespace com::sun::star::beans;
-using namespace com::sun::star::bridge;
-using namespace com::sun::star::frame;
-using namespace com::sun::star::registry;
-using namespace com::sun::star::table;
-using namespace com::sun::star::text;
-using namespace com::sun::star::lang;
-using namespace com::sun::star::container;
-
-using ::rtl::OUString;
-using ::rtl::OUStringBuffer;
-using ::rtl::OUStringToOString;
-
 class QMdiArea;
 
 class UnoSingleton;
+class unoFileObject;
 
 namespace Ui{
     class uno_main_window;
@@ -67,25 +28,16 @@ public:
     virtual ~UnoMainWindow();
 
 signals:
+    void initUnoComponents();
 
 public slots:
 private slots:
     void slotOpen();
 
 private:
-    void initUno();
-
-private:
     Ui::uno_main_window* _UI;
     QMdiArea* _mdiArea;
 
     bool _isInit;
-    OUString _sConnectionString;
-    Reference< XComponentContext > _xComponentContext;
-    Reference< XMultiComponentFactory > _xMultiComponentFactoryClient;
-    Reference< XInterface > _xInterface;
-    Reference< XUnoUrlResolver > _resolver;
-    Reference< XPropertySet > _xPropSet;
-    Reference< XMultiComponentFactory > _xMultiComponentFactoryServer;
-    Reference < XDesktop2 > _xComponentLoader;
+    unoFileObject* _unoFObj;
 };

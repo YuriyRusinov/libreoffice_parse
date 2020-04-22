@@ -31,6 +31,7 @@ set(HEADERS
     unoFileWidget.h
     unoSingleton.h
     unoTablesModel.h
+    unoFileObject.h
 )
 
 set(FORMS
@@ -42,6 +43,7 @@ set(SOURCES
     unoFileWidget.cpp
     unoSingleton.cpp
     unoTablesModel.cpp
+    unoFileObject.cpp
     main.cpp
 )
 
