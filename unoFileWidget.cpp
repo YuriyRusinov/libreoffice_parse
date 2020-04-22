@@ -8,7 +8,10 @@
  */
 #include <QAbstractItemModel>
 #include <QAction>
+#include <QLabel>
+#include <QLineEdit>
 #include <QGridLayout>
+#include <QHBoxLayout>
 #include <QSplitter>
 #include <QTextEdit>
 #include <QToolBar>
@@ -22,7 +25,10 @@ unoFileWidget::unoFileWidget(QWidget* parent, Qt::WindowFlags flags)
     _tbActions(new QToolBar),
     _spView(new QSplitter),
     _fileEditW(new QTextEdit),
-    _tvTables(new QTreeView) {
+    _tvTables(new QTreeView),
+    _wSearch(new QWidget),
+    _lSearch(new QLabel(tr("Search:"))),
+    _leSearch(new QLineEdit) {
     QGridLayout * gridLay = new QGridLayout(this);
     gridLay->addWidget(_tbActions, 0, 0, 1, 2);
     gridLay->addWidget(_spView, 1, 0, 1, 2);
@@ -31,12 +37,22 @@ unoFileWidget::unoFileWidget(QWidget* parent, Qt::WindowFlags flags)
 
     QAction* actOpen  = _tbActions->addAction(QIcon(":/libre_resources/open.png"), tr("Open ..."));
     QAction* actClose = _tbActions->addAction(QIcon(":/libre_resources/close.png"), tr("Close"));
+    QAction* actSep = _tbActions->addSeparator();
+    QHBoxLayout* hSLay = new QHBoxLayout(_wSearch);
+    hSLay->addWidget(_lSearch);
+    hSLay->addWidget(_leSearch);
+    QAction* actLE = _tbActions->addWidget(_wSearch);
+    QAction* actSearch = _tbActions->addAction(QIcon(":/libre_resources/search.jpg"), tr("Search ..."));
 
     QObject::connect(actOpen, &QAction::triggered, this, &unoFileWidget::slotFileOpen);
+    QObject::connect(actSearch, &QAction::triggered, this, &unoFileWidget::slotSearch);
     QObject::connect(actClose, &QAction::triggered, this, &unoFileWidget::slotFileClose);
 }
 
 unoFileWidget::~unoFileWidget() {
+    delete _leSearch;
+    delete _lSearch;
+    delete _wSearch;
     delete _tvTables;
     delete _fileEditW;
     delete _spView;
@@ -63,4 +79,9 @@ void unoFileWidget::setTablesModel(QAbstractItemModel* tableListModel) {
     _tvTables->setModel(tableListModel);
     if (oldModel && oldModel != tableListModel)
         delete oldModel;
+}
+
+void unoFileWidget::slotSearch() {
+    QString searchString = _leSearch->text();
+    qDebug() << __PRETTY_FUNCTION__ << searchString;
 }

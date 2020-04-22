@@ -11,6 +11,8 @@
 
 #include <QWidget>
 
+class QLabel;
+class QLineEdit;
 class QToolBar;
 class QTextEdit;
 class QTreeView;
@@ -28,12 +30,16 @@ public:
 private slots:
     void slotFileOpen();
     void slotFileClose();
+    void slotSearch();
 
 private:
     QToolBar* _tbActions;
     QSplitter* _spView;
     QTextEdit* _fileEditW;
     QTreeView* _tvTables;
+    QWidget* _wSearch;
+    QLabel* _lSearch;
+    QLineEdit* _leSearch;
 
 private:
     Q_OBJECT
