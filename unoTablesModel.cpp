@@ -1,3 +1,6 @@
+/*
+ * Модель визуального отображения списка таблиц в odt-файле
+ */
 #include <com/sun/star/table/XTableColumns.hpp>
 #include <com/sun/star/table/XTableRows.hpp>
 #include "unoTablesModel.h"
@@ -34,20 +37,55 @@ QVariant unoTablesModel::data(const QModelIndex& index, int role) const {
         switch (iColumn) {
             case 0: return _tableNames[iRow]; break;
             case 1: {
-                        return _tableCols[iRow];
+                        return _tableRows[iRow];
                         break;
                     }
             case 2: {
-                        return _tableRows[iRow];
+                        return _tableCols[iRow];
                         break;
                     }
             default: return QVariant(); break;
         }
     }
-    else if (role == Qt::UserRole)
-        return iRow;
+    else if (role == Qt::UserRole) {
+        Reference< XTextTable > xTable = _xTablesRef[iRow];
+        QVariant val = QVariant::fromValue(xTable);
+        return val;
+    }
 
     return QVariant();
+}
+
+bool unoTablesModel::setData(const QModelIndex& index, const QVariant& value, int role) {
+    if (!index.isValid())
+        return false;
+
+    int iRow = index.row();
+    if (role == Qt::UserRole) {
+        Reference< XTextTable > xTable = value.value< Reference< XTextTable > >();
+        _xTablesRef[iRow] = xTable;
+        Reference< XTableColumns > tabCols = xTable->getColumns();
+        Reference< XTableRows > tabRows = xTable->getRows();
+        _tableCols[iRow] = tabCols->getCount();
+        _tableRows[iRow] = tabRows->getCount();
+        QModelIndex ibegin = index.sibling(iRow, 0);
+        QModelIndex iend = index.sibling(iRow, 2);
+        emit dataChanged(ibegin, iend);
+        return true;
+    }
+    else if (role == Qt::EditRole || role == Qt::DisplayRole) {
+        int iCol = index.column();
+        switch (iCol) {
+            case 0: _tableNames[iRow] = value.toString(); break;
+            case 1: _tableRows[iRow] = value.toInt(); break;
+            case 2: _tableCols[iRow] = value.toInt(); break;
+            default: return false; break;
+        }
+        emit dataChanged(index, index);
+        return true;
+    }
+
+    return false;
 }
 
 QModelIndex unoTablesModel::index(int row, int column, const QModelIndex& parent) const {
@@ -71,7 +109,7 @@ int unoTablesModel::rowCount(const QModelIndex& parent) const {
 
 QVariant unoTablesModel::headerData(int section, Qt::Orientation orientation, int role) const {
     QStringList listHeader;
-    listHeader << tr("Table name") << tr("Number of columns") << tr("Number of rows");
+    listHeader << tr("Table name") << tr("Number of rows") << tr("Number of columns");
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
         return listHeader[section];
     else

@@ -27,9 +27,13 @@ unoFileObject::~unoFileObject() {
 }
 
 QWidget* unoFileObject::guiView(QWidget* parent, Qt::WindowFlags flags) {
-    unoFileWidget* w = new unoFileWidget(parent, flags);
+    unoFileWidget* unoFileW = new unoFileWidget(parent, flags);
+    QObject::connect(unoFileW, &unoFileWidget::search, this, &unoFileObject::searchUnoTables);
+    QObject::connect(unoFileW, &unoFileWidget::addRowToTable, this, &unoFileObject::addTableRow);
+    QObject::connect(unoFileW, &unoFileWidget::delRowFromTable, this, &unoFileObject::delTableRow);
+    QObject::connect(this, &unoFileObject::updateTables, unoFileW, &unoFileWidget::updateTableModel);
 
-    return w;
+    return unoFileW;
 }
 
 void unoFileObject::init() {
@@ -101,4 +105,23 @@ Reference< XComponent > unoFileObject::loadFromURL(const QUrl& fileUrl) {
 void unoFileObject::initUnoComponents() {
     qDebug() << __PRETTY_FUNCTION__;
     init();
+}
+
+void unoFileObject::searchUnoTables(QString searchStr) {
+}
+
+void unoFileObject::addTableRow(Reference< XTextTable > wTable, int iRow) {
+    if (wTable.get() == nullptr)
+        return;
+    Reference< XTableRows > tabRows = wTable->getRows();
+    tabRows->insertByIndex(iRow, 1);
+    emit updateTables(wTable);
+}
+
+void unoFileObject::delTableRow(Reference< XTextTable > wTable, int iRow) {
+    if (wTable.get() == nullptr)
+        return;
+    Reference< XTableRows > tabRows = wTable->getRows();
+    tabRows->removeByIndex(iRow, 1);
+    emit updateTables(wTable);
 }

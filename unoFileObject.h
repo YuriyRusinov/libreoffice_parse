@@ -22,12 +22,15 @@
 #include <com/sun/star/bridge/XUnoUrlResolver.hpp>
 #include <com/sun/star/beans/XPropertySet.hpp>
 #include <com/sun/star/frame/XDesktop2.hpp>
+#include <com/sun/star/text/XTextTable.hpp>
 
 using namespace com::sun::star::uno;
 using namespace com::sun::star::lang;
 using namespace com::sun::star::bridge;
 using namespace com::sun::star::beans;
 using namespace com::sun::star::frame;
+using namespace com::sun::star::text;
+using namespace com::sun::star::table;
 
 using ::rtl::OUString;
 
@@ -45,6 +48,14 @@ public:
 
 public slots:
     void initUnoComponents();
+
+signals:
+    void updateTables(Reference< XTextTable > wTable);
+
+private slots:
+    void searchUnoTables(QString searchStr);
+    void addTableRow(Reference< XTextTable > wTable, int iRow);
+    void delTableRow(Reference< XTextTable > wTable, int iRow);
 
 private:
     //

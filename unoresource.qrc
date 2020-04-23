@@ -3,5 +3,7 @@
     <file alias="open.png">images/fileopen_28366.png</file>
     <file alias="close.png">images/x-icon-png-8.png</file>
     <file alias="search.jpg">images/search.jpg</file>
+    <file alias="add_row.png">images/row-add-icon.png</file>
+    <file alias="del_row.png">images/row-del-icon.png</file>
 </qresource>
 </RCC>

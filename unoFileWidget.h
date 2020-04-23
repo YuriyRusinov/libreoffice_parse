@@ -9,7 +9,12 @@
 
 #pragma once
 
+#include <QModelIndex>
 #include <QWidget>
+#include <com/sun/star/text/XTextTable.hpp>
+
+using namespace com::sun::star::text;
+using namespace com::sun::star::uno;
 
 class QLabel;
 class QLineEdit;
@@ -31,15 +36,28 @@ private slots:
     void slotFileOpen();
     void slotFileClose();
     void slotSearch();
+    void slotAddRowToTable();
+    void slotDelRowFromTable();
+    void updateTableModel(Reference< XTextTable > wTable);
+
+signals:
+    void search(QString searchStr);
+    void addRowToTable(Reference< XTextTable > wTable, int iRow);
+    void delRowFromTable(Reference< XTextTable > wTable, int iRow);
 
 private:
     QToolBar* _tbActions;
     QSplitter* _spView;
     QTextEdit* _fileEditW;
+    QWidget* _wTables;
     QTreeView* _tvTables;
+    QToolBar* _tbTableActions;
     QWidget* _wSearch;
     QLabel* _lSearch;
     QLineEdit* _leSearch;
+    QModelIndex wTableIndex;
+
+    friend class unoFileObject;
 
 private:
     Q_OBJECT
