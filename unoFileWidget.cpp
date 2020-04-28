@@ -24,8 +24,9 @@
 #include "unoFileWidget.h"
 #include "unoTablesModel.h"
 
-unoFileWidget::unoFileWidget(QWidget* parent, Qt::WindowFlags flags)
+unoFileWidget::unoFileWidget(const QUrl& fileUrl, QWidget* parent, Qt::WindowFlags flags)
     : QWidget(parent, flags),
+    _fileUrl(fileUrl),
     _tbActions(new QToolBar),
     _spView(new QSplitter),
     _fileEditW(new QTextEdit),
@@ -34,7 +35,9 @@ unoFileWidget::unoFileWidget(QWidget* parent, Qt::WindowFlags flags)
     _tbTableActions(new QToolBar),
     _wSearch(new QWidget),
     _lSearch(new QLabel(tr("Search:"))),
-    _leSearch(new QLineEdit) {
+    _leSearch(new QLineEdit)
+{
+    qDebug() << __PRETTY_FUNCTION__ << _fileUrl;
     QGridLayout * gridLay = new QGridLayout(this);
     gridLay->addWidget(_tbActions, 0, 0, 1, 2);
     gridLay->addWidget(_spView, 1, 0, 1, 2);
@@ -46,7 +49,7 @@ unoFileWidget::unoFileWidget(QWidget* parent, Qt::WindowFlags flags)
     _tbTableActions->setOrientation(Qt::Vertical);
     hTableLay->addWidget(_tbTableActions);
 
-    QAction* actOpen  = _tbActions->addAction(QIcon(":/libre_resources/open.png"), tr("Open ..."));
+    QAction* actOpenFile  = _tbActions->addAction(QIcon(":/libre_resources/open.png"), tr("Open ..."));
     QAction* actClose = _tbActions->addAction(QIcon(":/libre_resources/close.png"), tr("Close"));
     QAction* actSep = _tbActions->addSeparator();
     QHBoxLayout* hSLay = new QHBoxLayout(_wSearch);
@@ -54,14 +57,19 @@ unoFileWidget::unoFileWidget(QWidget* parent, Qt::WindowFlags flags)
     hSLay->addWidget(_leSearch);
     QAction* actLE = _tbActions->addWidget(_wSearch);
     QAction* actSearch = _tbActions->addAction(QIcon(":/libre_resources/search.jpg"), tr("Search ..."));
+    QAction* actSaveFile = _tbActions->addAction(QIcon(":/libre_resources/save.png"), tr("Save ..."));
+    actSaveFile->setToolTip(tr("Save file"));
 
     QAction* actTableRowAdd = _tbTableActions->addAction(QIcon(":/libre_resources/add_row.png"), tr("Add row to selected table"));
+    actTableRowAdd->setToolTip(tr("Add row to selected table"));
     QAction* actTableRowDel = _tbTableActions->addAction(QIcon(":/libre_resources/del_row.png"), tr("Del row from selected table"));
+    actTableRowDel->setToolTip(tr("Remove row from selected table"));
 
     QObject::connect(actTableRowAdd, &QAction::triggered, this, &unoFileWidget::slotAddRowToTable);
     QObject::connect(actTableRowDel, &QAction::triggered, this, &unoFileWidget::slotDelRowFromTable);
 
-    QObject::connect(actOpen, &QAction::triggered, this, &unoFileWidget::slotFileOpen);
+    QObject::connect(actOpenFile, &QAction::triggered, this, &unoFileWidget::slotFileOpen);
+    QObject::connect(actSaveFile, &QAction::triggered, this, &unoFileWidget::slotSaveFile);
     QObject::connect(actSearch, &QAction::triggered, this, &unoFileWidget::slotSearch);
     QObject::connect(actClose, &QAction::triggered, this, &unoFileWidget::slotFileClose);
 }
@@ -150,4 +158,8 @@ void unoFileWidget::updateTableModel(Reference< XTextTable > wTable) {
     QAbstractItemModel* tModel = _tvTables->model();
     QVariant val = QVariant::fromValue(wTable);
     tModel->setData(wTableIndex, val, Qt::UserRole);
+}
+
+void unoFileWidget::slotSaveFile() {
+    qDebug() << __PRETTY_FUNCTION__;
 }

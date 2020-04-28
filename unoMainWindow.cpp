@@ -22,11 +22,14 @@
 #include <osl/file.hxx>
 #include <rtl/string.h>
 #include <rtl/ustrbuf.hxx>
+#include <rtl/byteseq.h>
 
 #include <com/sun/star/container/XNameAccess.hpp>
 #include <com/sun/star/lang/XMultiServiceFactory.hpp>
 #include <com/sun/star/text/XTextDocument.hpp>
 #include <com/sun/star/text/XTextTablesSupplier.hpp>
+#include <com/sun/star/ucb/XSimpleFileAccess.hpp>
+#include <com/sun/star/io/XOutputStream.hpp>
 
 #include "unoSingleton.h"
 #include "unoFileObject.h"
@@ -43,9 +46,12 @@ using std::string;
 
 using ::rtl::OUStringBuffer;
 using ::rtl::OUStringToOString;
+
 using namespace com::sun::star::text;
 using namespace com::sun::star::lang;
 using namespace com::sun::star::container;
+using namespace com::sun::star::io;
+using namespace com::sun::star::ucb;
 
 UnoMainWindow::UnoMainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -122,8 +128,27 @@ void UnoMainWindow::slotOpen() {
 //            xComponentContext ), UNO_QUERY_THROW );
 //
     Reference< XComponent > xComponent = _unoFObj->loadFromURL(fileUrl);
+    Reference< XModel > xm (xComponent, UNO_QUERY);
+    qDebug() << __PRETTY_FUNCTION__ << "Module is " << xm.is();
     Reference< XTextDocument > xTextDoc (xComponent, UNO_QUERY );
-    qDebug() << __PRETTY_FUNCTION__ << xTextDoc.get();
+    OUStringBuffer bufPath;
+    for (int i=0; i<fileUrl.path().length()-12; i++)
+        bufPath.append( fileUrl.path().toStdString().at(i) );
+    bufPath.append( "/test.odt" );
+    Reference< XInterface > xTestOutput = _unoFObj->getSimpleFileAccess();
+    Reference< XSimpleFileAccess > xSimpleFileAcc (xTestOutput, UNO_QUERY );
+    qDebug() << __PRETTY_FUNCTION__ << "File access is " << xSimpleFileAcc.is();
+    cerr << __PRETTY_FUNCTION__ << bufPath.toString() << endl;
+    Reference< XOutputStream > xOut = xSimpleFileAcc->openFileWrite( bufPath.toString() );
+/*    osl::File osfTest( "file:///home/yuriy/projects/test_uno/examples/test.odt" );
+    osl::FileBase::RC resTest = osfTest.open( (sal_uInt32)0x0002 );
+    if (resTest != osl::FileBase::E_None) {
+        qDebug () << __PRETTY_FUNCTION__ << "Error, code = " << (int)resTest << (int)osl::FileBase::E_INVAL ;
+        return;
+    }
+*/
+    qDebug() << __PRETTY_FUNCTION__ << "XOutputStream is " << xOut.is();
+    Reference< XInterface > xInt = _unoFObj->getComponentLoader();
     Reference< XText > xText = xTextDoc->getText();
 //
 //  For debug purposes
@@ -131,8 +156,17 @@ void UnoMainWindow::slotOpen() {
 //    cerr << __PRETTY_FUNCTION__ << " " << xText->getString() << endl;
     stringstream textStr;
     textStr << xText->getString();
-    Reference< XMultiServiceFactory > xMultiServ (xTextDoc, UNO_QUERY );
+    Reference< XMultiServiceFactory > xMultiServ( xTextDoc, UNO_QUERY );
     qDebug() << __PRETTY_FUNCTION__ << "Document multiservice factory is " << xMultiServ.get();
+    //xOut << xTextDoc;
+    qDebug() << __PRETTY_FUNCTION__ << "Text document is " << xTextDoc.get() << "Test output stream is " << xOut.is();
+    //rtl::ByteSequence wbs;
+    //bseq = wbs;
+    string wbs = "Превед медвед";
+    Sequence< sal_Int8 > bseq (wbs.size());
+    for (int i=0; i<wbs.size(); i++)
+        bseq[i] = wbs[i];
+    xOut->writeBytes(bseq);
     Reference< XTextTablesSupplier > xTextTablesSuppl (xTextDoc, UNO_QUERY );
     qDebug() << __PRETTY_FUNCTION__ << "Tables supplier is " << xTextTablesSuppl.get();
     Reference< XNameAccess > xNamedTables = xTextTablesSuppl->getTextTables();
@@ -162,7 +196,7 @@ void UnoMainWindow::slotOpen() {
     //        );
     //qDebug() << __PRETTY_FUNCTION__ << xTextTables.get();
 
-    unoFileWidget* w = qobject_cast<unoFileWidget*>(_unoFObj->guiView());
+    unoFileWidget* w = qobject_cast<unoFileWidget*>(_unoFObj->guiView(fileUrl));
     w->setText(QString::fromStdString(textStr.str()));
     w->setTablesModel(tModel);
     w->setAttribute(Qt::WA_DeleteOnClose);

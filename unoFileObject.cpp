@@ -7,11 +7,16 @@
  */
 #include <cppuhelper/bootstrap.hxx>
 #include <com/sun/star/frame/Desktop.hpp>
+#include <com/sun/star/io/XOutputStream.hpp>
+#include <com/sun/star/ucb/XSimpleFileAccess.hpp>
 
 #include <QUrl>
 #include <QtDebug>
 #include "unoFileObject.h"
 #include "unoFileWidget.h"
+
+using namespace com::sun::star::io;
+using namespace com::sun::star::ucb;
 
 using ::rtl::OUString;
 using ::rtl::OUStringBuffer;
@@ -26,8 +31,8 @@ unoFileObject::unoFileObject(QObject* parent)
 unoFileObject::~unoFileObject() {
 }
 
-QWidget* unoFileObject::guiView(QWidget* parent, Qt::WindowFlags flags) {
-    unoFileWidget* unoFileW = new unoFileWidget(parent, flags);
+QWidget* unoFileObject::guiView(const QUrl& fileUrl, QWidget* parent, Qt::WindowFlags flags) {
+    unoFileWidget* unoFileW = new unoFileWidget(fileUrl, parent, flags);
     QObject::connect(unoFileW, &unoFileWidget::search, this, &unoFileObject::searchUnoTables);
     QObject::connect(unoFileW, &unoFileWidget::addRowToTable, this, &unoFileObject::addTableRow);
     QObject::connect(unoFileW, &unoFileWidget::delRowFromTable, this, &unoFileObject::delTableRow);
@@ -99,6 +104,14 @@ Reference< XComponent > unoFileObject::loadFromURL(const QUrl& fileUrl) {
     Reference< XComponent > xComponent = _xComponentLoader->loadComponentFromURL(
         buf.toString(), OUString( "_blank" ), 0,
         Sequence < ::com::sun::star::beans::PropertyValue >() );
+    _xSimpleFileAccessInterface = Reference< XInterface >(
+                _xMultiComponentFactoryClient->createInstanceWithContext(
+                    "com.sun.star.ucb.SimpleFileAccess",
+                     _xComponentContext )
+            );
+    qDebug() << __PRETTY_FUNCTION__ << _xSimpleFileAccessInterface.is() << xComponent.is();
+    Reference< XSimpleFileAccess > xSF ( _xSimpleFileAccessInterface, UNO_QUERY );
+    qDebug() << __PRETTY_FUNCTION__ << xSF.is();
     return xComponent;
 }
 
@@ -124,4 +137,16 @@ void unoFileObject::delTableRow(Reference< XTextTable > wTable, int iRow) {
     Reference< XTableRows > tabRows = wTable->getRows();
     tabRows->removeByIndex(iRow, 1);
     emit updateTables(wTable);
+}
+
+Reference< XInterface > unoFileObject::getInterface() const {
+    return _xInterface;
+}
+
+Reference< XDesktop2 > unoFileObject::getComponentLoader() const {
+    return _xComponentLoader;
+}
+
+Reference< XInterface > unoFileObject::getSimpleFileAccess() const {
+    return _xSimpleFileAccessInterface;
 }

@@ -40,11 +40,14 @@ private:
     virtual ~unoFileObject();
 
 public:
-    QWidget* guiView(QWidget* parent=nullptr, Qt::WindowFlags flags=Qt::WindowFlags());
+    QWidget* guiView(const QUrl& fileUrl, QWidget* parent=nullptr, Qt::WindowFlags flags=Qt::WindowFlags());
 
     friend class UnoSingleton;
 
     Reference< XComponent > loadFromURL(const QUrl& fileUrl);
+    Reference< XInterface > getInterface() const;
+    Reference< XDesktop2 > getComponentLoader() const;
+    Reference< XInterface > getSimpleFileAccess() const;
 
 public slots:
     void initUnoComponents();
@@ -73,7 +76,8 @@ private:
     Reference< XUnoUrlResolver > _resolver;
     Reference< XPropertySet > _xPropSet;
     Reference< XMultiComponentFactory > _xMultiComponentFactoryServer;
-    Reference < XDesktop2 > _xComponentLoader;
+    Reference< XDesktop2 > _xComponentLoader;
+    Reference< XInterface> _xSimpleFileAccessInterface;
 
 private:
     Q_OBJECT

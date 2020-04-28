@@ -10,6 +10,7 @@
 #pragma once
 
 #include <QModelIndex>
+#include <QUrl>
 #include <QWidget>
 #include <com/sun/star/text/XTextTable.hpp>
 
@@ -26,7 +27,7 @@ class QSplitter;
 
 class unoFileWidget : public QWidget {
 public:
-    explicit unoFileWidget(QWidget* parent=nullptr, Qt::WindowFlags flags=Qt::WindowFlags());
+    explicit unoFileWidget(const QUrl& fileUrl, QWidget* parent=nullptr, Qt::WindowFlags flags=Qt::WindowFlags());
     virtual ~unoFileWidget();
 
     void setText(const QString& text);
@@ -39,6 +40,7 @@ private slots:
     void slotAddRowToTable();
     void slotDelRowFromTable();
     void updateTableModel(Reference< XTextTable > wTable);
+    void slotSaveFile();
 
 signals:
     void search(QString searchStr);
@@ -46,6 +48,7 @@ signals:
     void delRowFromTable(Reference< XTextTable > wTable, int iRow);
 
 private:
+    QUrl _fileUrl;
     QToolBar* _tbActions;
     QSplitter* _spView;
     QTextEdit* _fileEditW;
