@@ -8,6 +8,7 @@
  */
 #include <QAbstractItemModel>
 #include <QAction>
+#include <QFileDialog>
 #include <QInputDialog>
 #include <QItemSelectionModel>
 #include <QLabel>
@@ -19,6 +20,7 @@
 #include <QTextEdit>
 #include <QToolBar>
 #include <QTreeView>
+#include <QUrl>
 #include <QtDebug>
 
 #include "unoFileWidget.h"
@@ -162,4 +164,6 @@ void unoFileWidget::updateTableModel(Reference< XTextTable > wTable) {
 
 void unoFileWidget::slotSaveFile() {
     qDebug() << __PRETTY_FUNCTION__;
+    QUrl saveUrl = QFileDialog::getSaveFileUrl(this, tr("Save file"), QUrl(), tr ("Open Document Text Files (*.odt);;All files (*)"));
+    emit saveWriterFile(saveUrl);
 }

@@ -46,6 +46,7 @@ signals:
     void search(QString searchStr);
     void addRowToTable(Reference< XTextTable > wTable, int iRow);
     void delRowFromTable(Reference< XTextTable > wTable, int iRow);
+    void saveWriterFile(QUrl saveFileUrl);
 
 private:
     QUrl _fileUrl;

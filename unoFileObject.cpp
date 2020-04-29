@@ -5,16 +5,26 @@
  * @author:
  *     Ю.Л.Русинов
  */
+#include <iostream>
+#include <sstream>
 #include <cppuhelper/bootstrap.hxx>
+
+#include <osl/file.hxx>
+
 #include <com/sun/star/frame/Desktop.hpp>
 #include <com/sun/star/io/XOutputStream.hpp>
 #include <com/sun/star/ucb/XSimpleFileAccess.hpp>
+#include <com/sun/star/text/XTextDocument.hpp>
+#include <com/sun/star/io/XTextOutputStream.hpp>
 
 #include <QUrl>
 #include <QtDebug>
 #include "unoFileObject.h"
 #include "unoFileWidget.h"
 
+using std::cerr;
+using std::endl;
+using std::stringstream;
 using namespace com::sun::star::io;
 using namespace com::sun::star::ucb;
 
@@ -36,6 +46,7 @@ QWidget* unoFileObject::guiView(const QUrl& fileUrl, QWidget* parent, Qt::Window
     QObject::connect(unoFileW, &unoFileWidget::search, this, &unoFileObject::searchUnoTables);
     QObject::connect(unoFileW, &unoFileWidget::addRowToTable, this, &unoFileObject::addTableRow);
     QObject::connect(unoFileW, &unoFileWidget::delRowFromTable, this, &unoFileObject::delTableRow);
+    QObject::connect(unoFileW, &unoFileWidget::saveWriterFile, this, &unoFileObject::saveWorkFile);
     QObject::connect(this, &unoFileObject::updateTables, unoFileW, &unoFileWidget::updateTableModel);
 
     return unoFileW;
@@ -150,3 +161,32 @@ Reference< XDesktop2 > unoFileObject::getComponentLoader() const {
 Reference< XInterface > unoFileObject::getSimpleFileAccess() const {
     return _xSimpleFileAccessInterface;
 }
+
+void unoFileObject::saveWorkFile(QUrl saveFileUrl) {
+    OUString sDocUrl;
+    osl::FileBase::getFileURLFromSystemPath(
+                 OUString::createFromAscii(saveFileUrl.path().toUtf8().constData()),sDocUrl);
+    qDebug () << __PRETTY_FUNCTION__ << saveFileUrl;
+    cerr << __PRETTY_FUNCTION__ << sDocUrl << endl;
+    Reference< XComponent > xWriterComponent = _xComponentLoader->loadComponentFromURL(
+	    sDocUrl,//"private:factory/swriter",
+        OUString::createFromAscii("_blank"),
+        0,
+        Sequence < ::com::sun::star::beans::PropertyValue >());
+    stringstream textStr;
+    textStr << "Hello world" << endl;
+    Sequence< sal_Int8 > bseq (textStr.str().size());
+    for (int i=0; i<textStr.str().size(); i++)
+        bseq[i] = textStr.str().at(i);
+    Reference< XSimpleFileAccess > xSimpleFileAcc (_xSimpleFileAccessInterface, UNO_QUERY );
+    Reference< XOutputStream > xOut = xSimpleFileAcc->openFileWrite( sDocUrl );
+    Reference< XTextDocument > xTextDocument (xWriterComponent,UNO_QUERY);
+    Reference< XText > xText = xTextDocument->getText();
+    Reference< XTextRange > xTextRange = xText->getStart();
+    xTextRange->setString(OUString::createFromAscii(textStr.str().c_str()));
+    //xOut->writeBytes(OUString::createFromAscii(textStr.str().c_str()));
+
+    xOut->writeBytes(bseq);
+
+}
+

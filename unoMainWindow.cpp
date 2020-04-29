@@ -128,8 +128,6 @@ void UnoMainWindow::slotOpen() {
 //            xComponentContext ), UNO_QUERY_THROW );
 //
     Reference< XComponent > xComponent = _unoFObj->loadFromURL(fileUrl);
-    Reference< XModel > xm (xComponent, UNO_QUERY);
-    qDebug() << __PRETTY_FUNCTION__ << "Module is " << xm.is();
     Reference< XTextDocument > xTextDoc (xComponent, UNO_QUERY );
     OUStringBuffer bufPath;
     for (int i=0; i<fileUrl.path().length()-12; i++)
@@ -140,13 +138,6 @@ void UnoMainWindow::slotOpen() {
     qDebug() << __PRETTY_FUNCTION__ << "File access is " << xSimpleFileAcc.is();
     cerr << __PRETTY_FUNCTION__ << bufPath.toString() << endl;
     Reference< XOutputStream > xOut = xSimpleFileAcc->openFileWrite( bufPath.toString() );
-/*    osl::File osfTest( "file:///home/yuriy/projects/test_uno/examples/test.odt" );
-    osl::FileBase::RC resTest = osfTest.open( (sal_uInt32)0x0002 );
-    if (resTest != osl::FileBase::E_None) {
-        qDebug () << __PRETTY_FUNCTION__ << "Error, code = " << (int)resTest << (int)osl::FileBase::E_INVAL ;
-        return;
-    }
-*/
     qDebug() << __PRETTY_FUNCTION__ << "XOutputStream is " << xOut.is();
     Reference< XInterface > xInt = _unoFObj->getComponentLoader();
     Reference< XText > xText = xTextDoc->getText();
@@ -160,13 +151,12 @@ void UnoMainWindow::slotOpen() {
     qDebug() << __PRETTY_FUNCTION__ << "Document multiservice factory is " << xMultiServ.get();
     //xOut << xTextDoc;
     qDebug() << __PRETTY_FUNCTION__ << "Text document is " << xTextDoc.get() << "Test output stream is " << xOut.is();
-    //rtl::ByteSequence wbs;
-    //bseq = wbs;
-    string wbs = "Превед медвед";
-    Sequence< sal_Int8 > bseq (wbs.size());
-    for (int i=0; i<wbs.size(); i++)
-        bseq[i] = wbs[i];
+    Sequence< sal_Int8 > bseq (textStr.str().size());
+    for (int i=0; i<textStr.str().size(); i++)
+        bseq[i] = textStr.str().at(i);
+
     xOut->writeBytes(bseq);
+
     Reference< XTextTablesSupplier > xTextTablesSuppl (xTextDoc, UNO_QUERY );
     qDebug() << __PRETTY_FUNCTION__ << "Tables supplier is " << xTextTablesSuppl.get();
     Reference< XNameAccess > xNamedTables = xTextTablesSuppl->getTextTables();

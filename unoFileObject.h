@@ -9,6 +9,7 @@
 #pragma once
 
 #include <QObject>
+#include <QUrl>
 
 #include <sal/main.h>
 
@@ -59,6 +60,7 @@ private slots:
     void searchUnoTables(QString searchStr);
     void addTableRow(Reference< XTextTable > wTable, int iRow);
     void delTableRow(Reference< XTextTable > wTable, int iRow);
+    void saveWorkFile(QUrl saveFileUrl);
 
 private:
     //
