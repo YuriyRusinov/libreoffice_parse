@@ -20,6 +20,7 @@
 #include <com/sun/star/uno/XComponentContext.hpp>
 #include <com/sun/star/lang/XComponent.hpp>
 #include <com/sun/star/lang/XMultiComponentFactory.hpp>
+#include <com/sun/star/lang/XMultiServiceFactory.hpp>
 #include <com/sun/star/bridge/XUnoUrlResolver.hpp>
 #include <com/sun/star/beans/XPropertySet.hpp>
 #include <com/sun/star/frame/XDesktop2.hpp>
@@ -80,6 +81,7 @@ private:
     Reference< XMultiComponentFactory > _xMultiComponentFactoryServer;
     Reference< XDesktop2 > _xComponentLoader;
     Reference< XInterface> _xSimpleFileAccessInterface;
+    Reference< XMultiServiceFactory > _xOfficeServiceManager;
 
 private:
     Q_OBJECT

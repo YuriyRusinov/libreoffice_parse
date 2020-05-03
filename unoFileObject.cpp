@@ -37,7 +37,6 @@ using ::rtl::OUStringToOString;
 unoFileObject::unoFileObject(QObject* parent)
     : QObject(parent),
     _sConnectionString("uno:socket,host=localhost,port=2083;urp;StarOffice.ServiceManager") {
-//    init();
 }
 
 unoFileObject::~unoFileObject() {
@@ -85,14 +84,6 @@ void unoFileObject::init() {
     catch( ... ) {
         qDebug () << __PRETTY_FUNCTION__;
     }
-    // gets the service manager from the office
-    _xMultiComponentFactoryServer = Reference< XMultiComponentFactory >(
-            _xComponentContext->getServiceManager()
-            );
-    // get an instance of the remote office desktop UNO service
-    // and query the XComponentLoader interface
-    _xComponentLoader = Reference < XDesktop2 >( Desktop::create(_xComponentContext) );
-    // Resolves the component context from the office, on the uno URL given by argv[1].
     try
     {
         _xInterface = Reference< XInterface >(
@@ -105,6 +96,16 @@ void unoFileObject::init() {
                OUStringToOString(e.Message, RTL_TEXTENCODING_ASCII_US).getStr());
         return;
     }
+    // gets the service manager from the office
+    _xOfficeServiceManager = Reference< XMultiServiceFactory >(_xInterface, UNO_QUERY );
+    _xMultiComponentFactoryServer = Reference< XMultiComponentFactory >(
+            _xComponentContext->getServiceManager()
+            );
+    Reference< XInterface  > xDesktop =_xOfficeServiceManager->createInstance(
+        OUString::createFromAscii( "com.sun.star.frame.Desktop" ));
+    // get an instance of the remote office desktop UNO service
+    // and query the XComponentLoader interface
+    _xComponentLoader = Reference < XDesktop2 >( xDesktop, UNO_QUERY);//Desktop::create(_xComponentContext) );
 }
 
 Reference< XComponent > unoFileObject::loadFromURL(const QUrl& fileUrl) {
