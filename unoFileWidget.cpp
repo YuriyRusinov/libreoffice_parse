@@ -59,8 +59,8 @@ unoFileWidget::unoFileWidget(const QUrl& fileUrl, QWidget* parent, Qt::WindowFla
     hSLay->addWidget(_leSearch);
     QAction* actLE = _tbActions->addWidget(_wSearch);
     QAction* actSearch = _tbActions->addAction(QIcon(":/libre_resources/search.jpg"), tr("Search ..."));
-    QAction* actSaveFile = _tbActions->addAction(QIcon(":/libre_resources/save.png"), tr("Save ..."));
-    actSaveFile->setToolTip(tr("Save file"));
+    QAction* actSaveFile = _tbActions->addAction(QIcon(":/libre_resources/save.png"), tr("Save file as ..."));
+    actSaveFile->setToolTip(tr("Save file as ..."));
 
     QAction* actTableRowAdd = _tbTableActions->addAction(QIcon(":/libre_resources/add_row.png"), tr("Add row to selected table"));
     actTableRowAdd->setToolTip(tr("Add row to selected table"));

@@ -14,9 +14,11 @@
 #include <com/sun/star/frame/Desktop.hpp>
 #include <com/sun/star/io/XOutputStream.hpp>
 #include <com/sun/star/ucb/XSimpleFileAccess.hpp>
+#include <com/sun/star/ucb/XSimpleFileAccess2.hpp>
 #include <com/sun/star/text/XTextDocument.hpp>
 #include <com/sun/star/io/XTextOutputStream.hpp>
 
+#include <QFile>
 #include <QUrl>
 #include <QtDebug>
 #include "unoFileObject.h"
@@ -166,27 +168,28 @@ void unoFileObject::saveWorkFile(QUrl saveFileUrl) {
     OUString sDocUrl;
     osl::FileBase::getFileURLFromSystemPath(
                  OUString::createFromAscii(saveFileUrl.path().toUtf8().constData()),sDocUrl);
-    qDebug () << __PRETTY_FUNCTION__ << saveFileUrl;
+    Reference< XSimpleFileAccess2 > xSimpleFileAcc (_xSimpleFileAccessInterface, UNO_QUERY );
+    bool isFileExist = QFile::exists(saveFileUrl.path());
+    qDebug () << __PRETTY_FUNCTION__ << saveFileUrl << isFileExist;
     cerr << __PRETTY_FUNCTION__ << sDocUrl << endl;
-    Reference< XComponent > xWriterComponent = _xComponentLoader->loadComponentFromURL(
-	    sDocUrl,//"private:factory/swriter",
+/*    Reference< XComponent > xWriterComponent = _xComponentLoader->loadComponentFromURL(
+	    (isFileExist ? sDocUrl : "private:factory/swriter"),
         OUString::createFromAscii("_blank"),
         0,
         Sequence < ::com::sun::star::beans::PropertyValue >());
+*/
     stringstream textStr;
     textStr << "Hello world" << endl;
     Sequence< sal_Int8 > bseq (textStr.str().size());
     for (int i=0; i<textStr.str().size(); i++)
         bseq[i] = textStr.str().at(i);
-    Reference< XSimpleFileAccess > xSimpleFileAcc (_xSimpleFileAccessInterface, UNO_QUERY );
     Reference< XOutputStream > xOut = xSimpleFileAcc->openFileWrite( sDocUrl );
-    Reference< XTextDocument > xTextDocument (xWriterComponent,UNO_QUERY);
+/*    Reference< XTextDocument > xTextDocument (xWriterComponent, UNO_QUERY);
     Reference< XText > xText = xTextDocument->getText();
     Reference< XTextRange > xTextRange = xText->getStart();
     xTextRange->setString(OUString::createFromAscii(textStr.str().c_str()));
     //xOut->writeBytes(OUString::createFromAscii(textStr.str().c_str()));
-
+*/
     xOut->writeBytes(bseq);
-
 }
 

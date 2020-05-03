@@ -109,9 +109,9 @@ void UnoMainWindow::slotOpen() {
     osf.close();
 
 /*
- *  For tests
+ *  For debug
  */
-#ifdef _UNO_TEST_
+#ifdef _UNO_DEBUG_
     QByteArray ba = QByteArray::fromRawData( static_cast<const char*>(fileContent), readBytes );
     QFile fileTest("ttt.odt");
     if (!fileTest.open(QIODevice::WriteOnly))
@@ -129,16 +129,18 @@ void UnoMainWindow::slotOpen() {
 //
     Reference< XComponent > xComponent = _unoFObj->loadFromURL(fileUrl);
     Reference< XTextDocument > xTextDoc (xComponent, UNO_QUERY );
+#ifdef _UNO_DEBUG_
+    Reference< XInterface > xTestOutput = _unoFObj->getSimpleFileAccess();
+    Reference< XSimpleFileAccess > xSimpleFileAcc (xTestOutput, UNO_QUERY );
+    qDebug() << __PRETTY_FUNCTION__ << "File access is " << xSimpleFileAcc.is();
     OUStringBuffer bufPath;
     for (int i=0; i<fileUrl.path().length()-12; i++)
         bufPath.append( fileUrl.path().toStdString().at(i) );
     bufPath.append( "/test.odt" );
-    Reference< XInterface > xTestOutput = _unoFObj->getSimpleFileAccess();
-    Reference< XSimpleFileAccess > xSimpleFileAcc (xTestOutput, UNO_QUERY );
-    qDebug() << __PRETTY_FUNCTION__ << "File access is " << xSimpleFileAcc.is();
-    cerr << __PRETTY_FUNCTION__ << bufPath.toString() << endl;
     Reference< XOutputStream > xOut = xSimpleFileAcc->openFileWrite( bufPath.toString() );
+    cerr << __PRETTY_FUNCTION__ << bufPath.toString() << endl;
     qDebug() << __PRETTY_FUNCTION__ << "XOutputStream is " << xOut.is();
+#endif
     Reference< XInterface > xInt = _unoFObj->getComponentLoader();
     Reference< XText > xText = xTextDoc->getText();
 //
@@ -149,13 +151,14 @@ void UnoMainWindow::slotOpen() {
     textStr << xText->getString();
     Reference< XMultiServiceFactory > xMultiServ( xTextDoc, UNO_QUERY );
     qDebug() << __PRETTY_FUNCTION__ << "Document multiservice factory is " << xMultiServ.get();
-    //xOut << xTextDoc;
+#ifdef _UNO_DEBUG_
     qDebug() << __PRETTY_FUNCTION__ << "Text document is " << xTextDoc.get() << "Test output stream is " << xOut.is();
     Sequence< sal_Int8 > bseq (textStr.str().size());
     for (int i=0; i<textStr.str().size(); i++)
         bseq[i] = textStr.str().at(i);
 
     xOut->writeBytes(bseq);
+#endif
 
     Reference< XTextTablesSupplier > xTextTablesSuppl (xTextDoc, UNO_QUERY );
     qDebug() << __PRETTY_FUNCTION__ << "Tables supplier is " << xTextTablesSuppl.get();
