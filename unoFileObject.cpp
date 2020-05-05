@@ -45,8 +45,9 @@ unoFileObject::~unoFileObject() {
 QWidget* unoFileObject::guiView(const QUrl& fileUrl, QWidget* parent, Qt::WindowFlags flags) {
     unoFileWidget* unoFileW = new unoFileWidget(fileUrl, parent, flags);
     QObject::connect(unoFileW, &unoFileWidget::search, this, &unoFileObject::searchUnoTables);
-    QObject::connect(unoFileW, &unoFileWidget::addRowToTable, this, &unoFileObject::addTableRow);
-    QObject::connect(unoFileW, &unoFileWidget::delRowFromTable, this, &unoFileObject::delTableRow);
+
+    QObject::connect(unoFileW, &unoFileWidget::tableActSignal, this, &unoFileObject::slotTableAction);
+
     QObject::connect(unoFileW, &unoFileWidget::saveWriterFile, this, &unoFileObject::saveWorkFile);
     QObject::connect(this, &unoFileObject::updateTables, unoFileW, &unoFileWidget::updateTableModel);
 
@@ -137,20 +138,46 @@ void unoFileObject::initUnoComponents() {
 void unoFileObject::searchUnoTables(QString searchStr) {
 }
 
-void unoFileObject::addTableRow(Reference< XTextTable > wTable, int iRow) {
+void unoFileObject::slotTableAction(QModelIndex tableIndex, Reference< XTextTable > wTable, int tableActCode, int tableCoordPar, int iPar) {
     if (wTable.get() == nullptr)
         return;
-    Reference< XTableRows > tabRows = wTable->getRows();
-    tabRows->insertByIndex(iRow, 1);
-    emit updateTables(wTable);
-}
 
-void unoFileObject::delTableRow(Reference< XTextTable > wTable, int iRow) {
-    if (wTable.get() == nullptr)
-        return;
-    Reference< XTableRows > tabRows = wTable->getRows();
-    tabRows->removeByIndex(iRow, 1);
-    emit updateTables(wTable);
+    Reference< XTableRows > tabRows( nullptr );
+    Reference< XTableColumns > tabCols( nullptr );
+    switch( tableCoordPar ) {
+        case unoFileWidget::tableRow: {
+                                          tabRows = wTable->getRows();
+                                          break;
+                                      }
+        case unoFileWidget::tableColumn: {
+                                             tabCols = wTable->getColumns();
+                                             break;
+                                         }
+        default: return; break;
+    }
+    qDebug() << __PRETTY_FUNCTION__ << tabRows.is() << tabCols.is();
+    switch( tableActCode ) {
+        case unoFileWidget::tableAdd: {
+                                          if (tabRows.is())
+                                              tabRows->insertByIndex(iPar, 1);
+                                          else if (tabCols.is())
+                                              tabCols->insertByIndex(iPar, 1);
+                                          else
+                                              return;
+                                          break;
+                                      }
+        case unoFileWidget::tableDel: {
+                                          if (tabRows.is())
+                                              tabRows->removeByIndex(iPar-1, 1);
+                                          else if (tabCols.is())
+                                              tabCols->removeByIndex(iPar-1, 1);
+                                          else
+                                              return;
+                                          break;
+                                      }
+        default: return; break;
+    }
+    emit updateTables(tableIndex, wTable);
 }
 
 Reference< XInterface > unoFileObject::getInterface() const {

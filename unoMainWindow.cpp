@@ -111,7 +111,7 @@ void UnoMainWindow::slotOpen() {
 /*
  *  For debug
  */
-#ifdef _UNO_DEBUG_
+#if _UNO_DEBUG_==1
     QByteArray ba = QByteArray::fromRawData( static_cast<const char*>(fileContent), readBytes );
     QFile fileTest("ttt.odt");
     if (!fileTest.open(QIODevice::WriteOnly))
@@ -129,7 +129,7 @@ void UnoMainWindow::slotOpen() {
 //
     Reference< XComponent > xComponent = _unoFObj->loadFromURL(fileUrl);
     Reference< XTextDocument > xTextDoc (xComponent, UNO_QUERY );
-#ifdef _UNO_DEBUG_
+#if _UNO_DEBUG_==1
     Reference< XInterface > xTestOutput = _unoFObj->getSimpleFileAccess();
     Reference< XSimpleFileAccess > xSimpleFileAcc (xTestOutput, UNO_QUERY );
     qDebug() << __PRETTY_FUNCTION__ << "File access is " << xSimpleFileAcc.is();
@@ -151,7 +151,7 @@ void UnoMainWindow::slotOpen() {
     textStr << xText->getString();
     Reference< XMultiServiceFactory > xMultiServ( xTextDoc, UNO_QUERY );
     qDebug() << __PRETTY_FUNCTION__ << "Document multiservice factory is " << xMultiServ.get();
-#ifdef _UNO_DEBUG_
+#if _UNO_DEBUG_==1
     qDebug() << __PRETTY_FUNCTION__ << "Text document is " << xTextDoc.get() << "Test output stream is " << xOut.is();
     Sequence< sal_Int8 > bseq (textStr.str().size());
     for (int i=0; i<textStr.str().size(); i++)

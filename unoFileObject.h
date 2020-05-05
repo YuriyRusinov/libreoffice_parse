@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <QModelIndex>
 #include <QObject>
 #include <QUrl>
 
@@ -55,12 +56,13 @@ public slots:
     void initUnoComponents();
 
 signals:
-    void updateTables(Reference< XTextTable > wTable);
+    void updateTables(QModelIndex wTableIndex, Reference< XTextTable > wTable);
 
 private slots:
     void searchUnoTables(QString searchStr);
-    void addTableRow(Reference< XTextTable > wTable, int iRow);
-    void delTableRow(Reference< XTextTable > wTable, int iRow);
+//    void addTableRow(Reference< XTextTable > wTable, int iRow);
+//    void delTableRow(Reference< XTextTable > wTable, int iRow);
+    void slotTableAction(QModelIndex tableIndex, Reference< XTextTable > wTable, int tableActCode, int tableCoordPar, int iPar);
     void saveWorkFile(QUrl saveFileUrl);
 
 private:

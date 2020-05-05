@@ -6,5 +6,7 @@
     <file alias="search.jpg">images/search.jpg</file>
     <file alias="add_row.png">images/row-add-icon.png</file>
     <file alias="del_row.png">images/row-del-icon.png</file>
+    <file alias="add_column.png">images/column-add-icon.png</file>
+    <file alias="del_column.png">images/column-del-icon.png</file>
 </qresource>
 </RCC>

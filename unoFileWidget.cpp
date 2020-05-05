@@ -48,6 +48,8 @@ unoFileWidget::unoFileWidget(const QUrl& fileUrl, QWidget* parent, Qt::WindowFla
 
     QHBoxLayout* hTableLay = new QHBoxLayout (_wTables);
     hTableLay->addWidget(_tvTables);
+    _tvTables->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    _tvTables->setSelectionBehavior(QAbstractItemView::SelectRows);
     _tbTableActions->setOrientation(Qt::Vertical);
     hTableLay->addWidget(_tbTableActions);
 
@@ -64,11 +66,17 @@ unoFileWidget::unoFileWidget(const QUrl& fileUrl, QWidget* parent, Qt::WindowFla
 
     QAction* actTableRowAdd = _tbTableActions->addAction(QIcon(":/libre_resources/add_row.png"), tr("Add row to selected table"));
     actTableRowAdd->setToolTip(tr("Add row to selected table"));
-    QAction* actTableRowDel = _tbTableActions->addAction(QIcon(":/libre_resources/del_row.png"), tr("Del row from selected table"));
+    QAction* actTableRowDel = _tbTableActions->addAction(QIcon(":/libre_resources/del_row.png"), tr("Delete row from selected table"));
     actTableRowDel->setToolTip(tr("Remove row from selected table"));
+    QAction* actTableColumnAdd = _tbTableActions->addAction(QIcon(":/libre_resources/add_column.png"), tr("Add column to selected table"));
+    actTableColumnAdd->setToolTip(tr("Add column to selected table"));
+    QAction* actTableColumnDel = _tbTableActions->addAction(QIcon(":/libre_resources/del_column.png"), tr("Delete column from selected table"));
+    actTableColumnDel->setToolTip(tr("Remove column from selected table"));
 
     QObject::connect(actTableRowAdd, &QAction::triggered, this, &unoFileWidget::slotAddRowToTable);
     QObject::connect(actTableRowDel, &QAction::triggered, this, &unoFileWidget::slotDelRowFromTable);
+    QObject::connect(actTableColumnAdd, &QAction::triggered, this, &unoFileWidget::slotAddColumnToTable);
+    QObject::connect(actTableColumnDel, &QAction::triggered, this, &unoFileWidget::slotDelColumnFromTable);
 
     QObject::connect(actOpenFile, &QAction::triggered, this, &unoFileWidget::slotFileOpen);
     QObject::connect(actSaveFile, &QAction::triggered, this, &unoFileWidget::slotSaveFile);
@@ -117,46 +125,50 @@ void unoFileWidget::slotSearch() {
 }
 
 void unoFileWidget::slotAddRowToTable() {
-    QItemSelectionModel* selTableModel = _tvTables->selectionModel();
-    QModelIndexList tbIndexes = selTableModel->selectedIndexes();
-    if (tbIndexes.size() == 0) {
-        QMessageBox::warning(this, tr("Tables"), tr("Please select table to add rows"), QMessageBox::Ok);
-        return;
-    }
-    wTableIndex = tbIndexes[0];
-    QAbstractItemModel* tModel = _tvTables->model();
-    Reference< XTextTable > wTable = tModel->data(wTableIndex, Qt::UserRole).value<Reference< XTextTable > >();
+    QModelIndexList tbIndexes = getTableIndexes();
+    Reference< XTextTable > wTable = getTable();
     qDebug() << __PRETTY_FUNCTION__ << wTable.get();
-    int iRowMin = 0;
-    QModelIndex rIndex = tbIndexes[1];
-    int iRowMax = tModel->data(rIndex, Qt::DisplayRole).toInt();
-    bool ok;
-    int nRow = QInputDialog::getInt(this, tr("Insert row"), tr("Row :"), iRowMax, 0, iRowMax, 1, &ok);
-    if (ok)
-        emit addRowToTable(wTable, nRow);
+    if (!wTable.is())
+        return;
+    int nRow = getTableParameter(tbIndexes, tableAdd, tableRow);
+    if (nRow >= 0)
+        emit tableActSignal(tbIndexes[0], wTable, tableAdd, tableRow, nRow);
 }
 
 void unoFileWidget::slotDelRowFromTable() {
-    QItemSelectionModel* selTableModel = _tvTables->selectionModel();
-    QModelIndexList tbIndexes = selTableModel->selectedIndexes();
-    if (tbIndexes.size() == 0) {
-        QMessageBox::warning(this, tr("Tables"), tr("Please select table to remove rows"), QMessageBox::Ok);
-        return;
-    }
-    wTableIndex = tbIndexes[0];
-    QAbstractItemModel* tModel = _tvTables->model();
-    Reference< XTextTable > wTable = tModel->data(wTableIndex, Qt::UserRole).value<Reference< XTextTable > >();
+    QModelIndexList tbIndexes = getTableIndexes();
+    Reference< XTextTable > wTable = getTable();
     qDebug() << __PRETTY_FUNCTION__ << wTable.get();
-    int iRowMin = 0;
-    QModelIndex rIndex = tbIndexes[1];
-    int iRowMax = tModel->data(rIndex, Qt::DisplayRole).toInt();
-    bool ok;
-    int nRow = QInputDialog::getInt(this, tr("Remove row"), tr("Row :"), iRowMax, 0, iRowMax, 1, &ok);
-    if (ok)
-        emit delRowFromTable(wTable, nRow);
+    if (!wTable.is())
+        return;
+    int nRow = getTableParameter(tbIndexes, tableDel, tableRow);
+    if (nRow >= 0)
+        emit tableActSignal(tbIndexes[0], wTable, tableDel, tableRow, nRow);
 }
 
-void unoFileWidget::updateTableModel(Reference< XTextTable > wTable) {
+void unoFileWidget::slotAddColumnToTable() {
+    QModelIndexList tbIndexes = getTableIndexes();
+    Reference< XTextTable > wTable = getTable();
+    qDebug() << __PRETTY_FUNCTION__ << wTable.get();
+    if (!wTable.is())
+        return;
+    int nCol = getTableParameter(tbIndexes, tableAdd, tableColumn);
+    if (nCol >= 0)
+        emit tableActSignal(tbIndexes[0], wTable, tableAdd, tableColumn, nCol);
+}
+
+void unoFileWidget::slotDelColumnFromTable() {
+    QModelIndexList tbIndexes = getTableIndexes();
+    Reference< XTextTable > wTable = getTable();
+    qDebug() << __PRETTY_FUNCTION__ << wTable.get();
+    if (!wTable.is())
+        return;
+    int nCol = getTableParameter(tbIndexes, tableDel, tableColumn);
+    if (nCol >= 0)
+        emit tableActSignal(tbIndexes[0], wTable, tableDel, tableColumn, nCol);
+}
+
+void unoFileWidget::updateTableModel(QModelIndex wTableIndex, Reference< XTextTable > wTable) {
     QAbstractItemModel* tModel = _tvTables->model();
     QVariant val = QVariant::fromValue(wTable);
     tModel->setData(wTableIndex, val, Qt::UserRole);
@@ -166,4 +178,38 @@ void unoFileWidget::slotSaveFile() {
     qDebug() << __PRETTY_FUNCTION__;
     QUrl saveUrl = QFileDialog::getSaveFileUrl(this, tr("Save file"), QUrl(), tr ("Open Document Text Files (*.odt);;All files (*)"));
     emit saveWriterFile(saveUrl);
+}
+
+QModelIndexList unoFileWidget::getTableIndexes() const {
+    QItemSelectionModel* selTableModel = _tvTables->selectionModel();
+    QModelIndexList tbIndexes = selTableModel->selectedIndexes();
+    return tbIndexes;
+}
+
+Reference< XTextTable > unoFileWidget::getTable() {
+    QModelIndexList tbIndexes = getTableIndexes();
+    if (tbIndexes.size() == 0) {
+        QMessageBox::warning(this, tr("Tables"), tr("Please select table"), QMessageBox::Ok);
+        return nullptr;
+    }
+    QAbstractItemModel* tModel = _tvTables->model();
+    QModelIndex tableIndex = tbIndexes[0];
+    Reference< XTextTable > wTable = tModel->data(tableIndex, Qt::UserRole).value<Reference< XTextTable > >();
+    return wTable;
+}
+
+int unoFileWidget::getTableParameter(const QModelIndexList& selIndexes, unoFileWidget::tableActions tabActCode, unoFileWidget::tableCellParams tabParam) {
+    if (selIndexes.size() < 3)
+        return -1;
+    int iRowMin = 0;
+    QModelIndex rIndex = (tabParam == tableRow ? selIndexes[1] : selIndexes[2]);
+    int valMax = rIndex.data(Qt::DisplayRole).toInt();
+    bool ok;
+    QString tablePar = QString("%1").arg(tabParam == tableRow ? tr("Row") : tr("Column"));
+    QString title = QString("%1 %2").arg(tabActCode==tableAdd ? tr("Insert") : tr("Remove"))
+                                    .arg(tablePar);
+    int nVal = QInputDialog::getInt(this, title, tr("%1 :").arg(tablePar), valMax, 0, valMax, 1, &ok);
+    if (ok)
+        return nVal;
+    return -1;
 }

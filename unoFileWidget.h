@@ -32,6 +32,15 @@ public:
 
     void setText(const QString& text);
     void setTablesModel(QAbstractItemModel* tableListModel);
+    enum tableCellParams {
+        tableRow,
+        tableColumn
+    };
+
+    enum tableActions {
+        tableAdd,
+        tableDel
+    };
 
 private slots:
     void slotFileOpen();
@@ -39,14 +48,20 @@ private slots:
     void slotSearch();
     void slotAddRowToTable();
     void slotDelRowFromTable();
-    void updateTableModel(Reference< XTextTable > wTable);
+    void slotAddColumnToTable();
+    void slotDelColumnFromTable();
+    void updateTableModel(QModelIndex tabIndex, Reference< XTextTable > wTable);
     void slotSaveFile();
 
 signals:
     void search(QString searchStr);
-    void addRowToTable(Reference< XTextTable > wTable, int iRow);
-    void delRowFromTable(Reference< XTextTable > wTable, int iRow);
+    void tableActSignal(QModelIndex tabIndex, Reference< XTextTable > wTable, int tableActCode, int tableCoordPar, int iPar);
     void saveWriterFile(QUrl saveFileUrl);
+
+private:
+    QModelIndexList getTableIndexes() const;
+    Reference< XTextTable > getTable();
+    int getTableParameter(const QModelIndexList& selIndexes, tableActions tabActCode, tableCellParams tabParam);
 
 private:
     QUrl _fileUrl;
@@ -59,7 +74,6 @@ private:
     QWidget* _wSearch;
     QLabel* _lSearch;
     QLineEdit* _leSearch;
-    QModelIndex wTableIndex;
 
     friend class unoFileObject;
 
