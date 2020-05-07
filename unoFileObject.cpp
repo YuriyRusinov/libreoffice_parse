@@ -1,6 +1,6 @@
-/*
+/* @brief
  * Класс работы с файлами libreoffice через механизм uno.
- * (C) НПО Рубин
+ * (C) НИИ Рубин
  *
  * @author:
  *     Ю.Л.Русинов
@@ -27,6 +27,7 @@
 using std::cerr;
 using std::endl;
 using std::stringstream;
+
 using namespace com::sun::star::io;
 using namespace com::sun::star::ucb;
 

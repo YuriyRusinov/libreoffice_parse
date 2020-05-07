@@ -1,5 +1,9 @@
-/*
+/* @brief
  * Модель визуального отображения списка таблиц в odt-файле
+ *
+ * (C) НИИ Рубин
+ * @author:
+ *   Ю.Л.Русинов
  */
 #include <com/sun/star/table/XTableColumns.hpp>
 #include <com/sun/star/table/XTableRows.hpp>

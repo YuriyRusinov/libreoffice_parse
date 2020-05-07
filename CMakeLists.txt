@@ -35,10 +35,14 @@ set(HEADERS
     unoSingleton.h
     unoTablesModel.h
     unoFileObject.h
+    unoSearchForm.h
+    unoSearchTablesModel.h
+    unoSearchDelegate.h
 )
 
 set(FORMS
     uno_main_window.ui
+    uno_search_form.ui
 )
 
 set(SOURCES
@@ -47,6 +51,9 @@ set(SOURCES
     unoSingleton.cpp
     unoTablesModel.cpp
     unoFileObject.cpp
+    unoSearchForm.cpp
+    unoSearchTablesModel.cpp
+    unoSearchDelegate.cpp
     main.cpp
 )
 

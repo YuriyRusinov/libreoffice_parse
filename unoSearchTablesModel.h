@@ -1,5 +1,5 @@
 /* @brief
- * Модель визуального отображения списка таблиц в odt-файле
+ * Модель визуального отображения списка таблиц в odt-файле для поиска
  *
  * (C) НИИ Рубин
  * @author:
@@ -15,14 +15,15 @@ using std::vector;
 
 using namespace com::sun::star::table;
 
-class unoTablesModel : public QAbstractItemModel {
+class unoSearchTablesModel : public QAbstractItemModel {
 public:
-    unoTablesModel(const QStringList& tableNames, const vector< Reference< XTextTable > >& xTableRef, QObject* parent=nullptr);
-    virtual ~unoTablesModel();
+    unoSearchTablesModel(const QStringList& tableNames, const vector< Reference< XTextTable > >& xTableRef, QObject* parent=nullptr);
+    virtual ~unoSearchTablesModel();
 
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    bool setData(const QModelIndex& index, const QVariant& value, int role) override;
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
     QModelIndex parent(const QModelIndex &index) const override;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -32,8 +33,7 @@ public:
 private:
     QStringList _tableNames;
     vector< Reference< XTextTable > > _xTablesRef;
-    vector< int > _tableCols;
-    vector< int > _tableRows;
+    vector< int > _tableCheckState;
 
 private:
     Q_OBJECT

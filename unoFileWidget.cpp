@@ -1,8 +1,8 @@
-/*
+/* @brief
  * Widget, выводящий необходимые параметры загруженного файла и список
  * таблиц
  *
- * (C) НПО Рубин
+ * (C) НИИ Рубин
  * @author:
  *   Ю.Л.Русинов
  */
@@ -23,8 +23,14 @@
 #include <QUrl>
 #include <QtDebug>
 
+#include <vector>
+
 #include "unoFileWidget.h"
 #include "unoTablesModel.h"
+#include "unoSearchForm.h"
+#include "unoSearchTablesModel.h"
+
+using std::vector;
 
 unoFileWidget::unoFileWidget(const QUrl& fileUrl, QWidget* parent, Qt::WindowFlags flags)
     : QWidget(parent, flags),
@@ -34,10 +40,7 @@ unoFileWidget::unoFileWidget(const QUrl& fileUrl, QWidget* parent, Qt::WindowFla
     _fileEditW(new QTextEdit),
     _wTables(new QWidget),
     _tvTables(new QTreeView),
-    _tbTableActions(new QToolBar),
-    _wSearch(new QWidget),
-    _lSearch(new QLabel(tr("Search:"))),
-    _leSearch(new QLineEdit)
+    _tbTableActions(new QToolBar)
 {
     qDebug() << __PRETTY_FUNCTION__ << _fileUrl;
     QGridLayout * gridLay = new QGridLayout(this);
@@ -56,11 +59,8 @@ unoFileWidget::unoFileWidget(const QUrl& fileUrl, QWidget* parent, Qt::WindowFla
     QAction* actOpenFile  = _tbActions->addAction(QIcon(":/libre_resources/open.png"), tr("Open ..."));
     QAction* actClose = _tbActions->addAction(QIcon(":/libre_resources/close.png"), tr("Close"));
     QAction* actSep = _tbActions->addSeparator();
-    QHBoxLayout* hSLay = new QHBoxLayout(_wSearch);
-    hSLay->addWidget(_lSearch);
-    hSLay->addWidget(_leSearch);
-    QAction* actLE = _tbActions->addWidget(_wSearch);
     QAction* actSearch = _tbActions->addAction(QIcon(":/libre_resources/search.jpg"), tr("Search ..."));
+    actSearch->setToolTip(tr("Search text in table cells"));
     QAction* actSaveFile = _tbActions->addAction(QIcon(":/libre_resources/save.png"), tr("Save file as ..."));
     actSaveFile->setToolTip(tr("Save file as ..."));
 
@@ -85,9 +85,6 @@ unoFileWidget::unoFileWidget(const QUrl& fileUrl, QWidget* parent, Qt::WindowFla
 }
 
 unoFileWidget::~unoFileWidget() {
-    delete _leSearch;
-    delete _lSearch;
-    delete _wSearch;
     delete _tbTableActions;
     delete _tvTables;
     delete _wTables;
@@ -119,8 +116,35 @@ void unoFileWidget::setTablesModel(QAbstractItemModel* tableListModel) {
 }
 
 void unoFileWidget::slotSearch() {
-    QString searchString = _leSearch->text();
+    unoSearchForm* uSearchForm = new unoSearchForm;
+    if (!uSearchForm)
+        return;
+    QAbstractItemModel* tModel = _tvTables->model();
+    unoTablesModel* unoTabMod = qobject_cast<unoTablesModel *>(tModel);
+    if (!unoTabMod)
+        return;
+    QStringList tableNames;
+    vector< Reference< XTextTable > > refTab;
+    int nt = tModel->rowCount();
+    for (int i=0; i<nt; i++) {
+        QModelIndex wInd = tModel->index(i, 0);
+        QString tableName = tModel->data(wInd, Qt::DisplayRole).toString();
+        Reference< XTextTable > table = tModel->data(wInd, Qt::UserRole).value< Reference< XTextTable > >();
+        tableNames.append( tableName );
+        refTab.push_back( table );
+    }
+    unoSearchTablesModel* stModel = new unoSearchTablesModel( tableNames, refTab );
+    uSearchForm->setDocTablesModel( stModel );
+    QString searchString;
+    if (uSearchForm->exec() == QDialog::Accepted) {
+        searchString = uSearchForm->getSearchString();
+    }
+    else {
+        delete uSearchForm;
+        return;
+    }
     qDebug() << __PRETTY_FUNCTION__ << searchString;
+    delete uSearchForm;
     emit search(searchString);
 }
 

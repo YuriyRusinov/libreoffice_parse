@@ -1,8 +1,8 @@
-/*
+/* @brief
  * Widget, выводящий необходимые параметры загруженного файла и список
  * таблиц
  *
- * (C) НПО Рубин
+ * (C) НИИ Рубин
  * @author:
  *   Ю.Л.Русинов
  */
@@ -71,9 +71,6 @@ private:
     QWidget* _wTables;
     QTreeView* _tvTables;
     QToolBar* _tbTableActions;
-    QWidget* _wSearch;
-    QLabel* _lSearch;
-    QLineEdit* _leSearch;
 
     friend class unoFileObject;
 
