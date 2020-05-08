@@ -27,6 +27,10 @@ unoSearchForm::~unoSearchForm() {
     delete UI;
 }
 
+QAbstractItemModel* unoSearchForm::getDocTablesModel() const {
+    return UI->tvTables->model();
+}
+
 void unoSearchForm::setDocTablesModel(QAbstractItemModel* docTablesModel) {
     QAbstractItemModel* oldModel = UI->tvTables->model();
     UI->tvTables->setModel(docTablesModel);

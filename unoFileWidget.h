@@ -14,8 +14,12 @@
 #include <QWidget>
 #include <com/sun/star/text/XTextTable.hpp>
 
+#include <vector>
+
 using namespace com::sun::star::text;
 using namespace com::sun::star::uno;
+
+using std::vector;
 
 class QLabel;
 class QLineEdit;
@@ -54,7 +58,7 @@ private slots:
     void slotSaveFile();
 
 signals:
-    void search(QString searchStr);
+    void search(QString searchStr, vector< Reference< XTextTable > > searchTables);
     void tableActSignal(QModelIndex tabIndex, Reference< XTextTable > wTable, int tableActCode, int tableCoordPar, int iPar);
     void saveWriterFile(QUrl saveFileUrl);
 

@@ -20,6 +20,7 @@ public:
     unoSearchForm(QWidget* parent=nullptr, Qt::WindowFlags flags=Qt::WindowFlags());
     virtual ~unoSearchForm();
 
+    QAbstractItemModel* getDocTablesModel() const;
     void setDocTablesModel(QAbstractItemModel* docTablesModel);
     QString getSearchString() const;
 

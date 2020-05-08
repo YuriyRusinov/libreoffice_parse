@@ -23,14 +23,10 @@
 #include <QUrl>
 #include <QtDebug>
 
-#include <vector>
-
 #include "unoFileWidget.h"
 #include "unoTablesModel.h"
 #include "unoSearchForm.h"
 #include "unoSearchTablesModel.h"
-
-using std::vector;
 
 unoFileWidget::unoFileWidget(const QUrl& fileUrl, QWidget* parent, Qt::WindowFlags flags)
     : QWidget(parent, flags),
@@ -143,9 +139,21 @@ void unoFileWidget::slotSearch() {
         delete uSearchForm;
         return;
     }
+    QAbstractItemModel* stModelRet = uSearchForm->getDocTablesModel();
+    int nTables = stModelRet->rowCount();
+    vector< Reference< XTextTable > > selTables;
+    for (int i=0; i<nTables; i++) {
+        QModelIndex tIndex = stModelRet->index(i, 0);
+        Qt::CheckState isTableChecked = stModelRet->data(tIndex, Qt::CheckStateRole).value<Qt::CheckState>();
+        if (isTableChecked == Qt::Checked) {
+            Reference< XTextTable > table = stModelRet->data(tIndex, Qt::UserRole).value< Reference< XTextTable > >();
+            selTables.push_back( table );
+        }
+    }
     qDebug() << __PRETTY_FUNCTION__ << searchString;
     delete uSearchForm;
-    emit search(searchString);
+    if (!selTables.empty())
+        emit search(searchString, selTables);
 }
 
 void unoFileWidget::slotAddRowToTable() {

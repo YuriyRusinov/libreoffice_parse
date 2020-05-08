@@ -12,6 +12,8 @@
 #include <QObject>
 #include <QUrl>
 
+#include <vector>
+
 #include <sal/main.h>
 
 #include <rtl/string.h>
@@ -36,6 +38,7 @@ using namespace com::sun::star::text;
 using namespace com::sun::star::table;
 
 using ::rtl::OUString;
+using std::vector;
 
 class unoFileObject : public QObject {
 private:
@@ -59,9 +62,7 @@ signals:
     void updateTables(QModelIndex wTableIndex, Reference< XTextTable > wTable);
 
 private slots:
-    void searchUnoTables(QString searchStr);
-//    void addTableRow(Reference< XTextTable > wTable, int iRow);
-//    void delTableRow(Reference< XTextTable > wTable, int iRow);
+    void searchUnoTables(QString searchStr, vector< Reference< XTextTable > > searchTables);
     void slotTableAction(QModelIndex tableIndex, Reference< XTextTable > wTable, int tableActCode, int tableCoordPar, int iPar);
     void saveWorkFile(QUrl saveFileUrl);
 
@@ -82,7 +83,7 @@ private:
     Reference< XPropertySet > _xPropSet;
     Reference< XMultiComponentFactory > _xMultiComponentFactoryServer;
     Reference< XDesktop2 > _xComponentLoader;
-    Reference< XInterface> _xSimpleFileAccessInterface;
+    Reference< XInterface > _xSimpleFileAccessInterface;
     Reference< XMultiServiceFactory > _xOfficeServiceManager;
 
 private:

@@ -7,6 +7,7 @@
  */
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <cppuhelper/bootstrap.hxx>
 
 #include <osl/file.hxx>
@@ -17,6 +18,7 @@
 #include <com/sun/star/ucb/XSimpleFileAccess2.hpp>
 #include <com/sun/star/text/XTextDocument.hpp>
 #include <com/sun/star/io/XTextOutputStream.hpp>
+#include <com/sun/star/table/XCell.hpp>
 
 #include <QFile>
 #include <QUrl>
@@ -27,6 +29,7 @@
 using std::cerr;
 using std::endl;
 using std::stringstream;
+using std::string;
 
 using namespace com::sun::star::io;
 using namespace com::sun::star::ucb;
@@ -136,7 +139,29 @@ void unoFileObject::initUnoComponents() {
     init();
 }
 
-void unoFileObject::searchUnoTables(QString searchStr) {
+void unoFileObject::searchUnoTables(QString searchStr, vector< Reference< XTextTable > > searchTables) {
+    qDebug() << __PRETTY_FUNCTION__ << searchStr;
+    int nTables = searchTables.size();
+    Reference< XInterface  > wCellRef = _xOfficeServiceManager->createInstance( OUString::createFromAscii( "com.sun.star.text.Cell" ));
+    for (int i=0; i<nTables; i++) {
+        Reference< XTextTable > sTable = searchTables[i];
+        //Reference< TextTable > sTextT( sTable );
+        Sequence< OUString > tableCellNames = sTable->getCellNames();
+        for (::rtl::OUString* ptabCell = tableCellNames.begin();
+                ptabCell != tableCellNames.end();
+                ptabCell++) {
+            Reference< XCell > wCell = sTable->getCellByName(*ptabCell);
+            Reference< XText > wText = Reference< XText > (wCell, UNO_QUERY);
+            //qDebug() << __PRETTY_FUNCTION__ << wCell->getType() << wText.is();
+            stringstream wCellStr;
+            if (wText.is()) {
+                wCellStr << wText->getString();
+            }
+            QString cellStr = QString::fromStdString(wCellStr.str());
+            if (cellStr.contains(searchStr, Qt::CaseInsensitive))
+                qDebug() << __PRETTY_FUNCTION__ << searchStr << " was found ";
+        }
+    }
 }
 
 void unoFileObject::slotTableAction(QModelIndex tableIndex, Reference< XTextTable > wTable, int tableActCode, int tableCoordPar, int iPar) {
