@@ -6,6 +6,7 @@
  *     Ю.Л.Русинов
  */
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <string>
 #include <cppuhelper/bootstrap.hxx>
@@ -19,6 +20,9 @@
 #include <com/sun/star/text/XTextDocument.hpp>
 #include <com/sun/star/io/XTextOutputStream.hpp>
 #include <com/sun/star/table/XCell.hpp>
+#include <com/sun/star/awt/FontWeight.hpp>
+#include <com/sun/star/beans/XPropertySetInfo.hpp>
+#include <com/sun/star/beans/Property.hpp>
 
 #include <QFile>
 #include <QUrl>
@@ -28,11 +32,14 @@
 
 using std::cerr;
 using std::endl;
+using std::ofstream;
 using std::stringstream;
 using std::string;
 
 using namespace com::sun::star::io;
 using namespace com::sun::star::ucb;
+using namespace com::sun::star::awt;
+using namespace com::sun::star::beans;
 
 using ::rtl::OUString;
 using ::rtl::OUStringBuffer;
@@ -143,6 +150,7 @@ void unoFileObject::searchUnoTables(QString searchStr, vector< Reference< XTextT
     qDebug() << __PRETTY_FUNCTION__ << searchStr;
     int nTables = searchTables.size();
     Reference< XInterface  > wCellRef = _xOfficeServiceManager->createInstance( OUString::createFromAscii( "com.sun.star.text.Cell" ));
+    std::ofstream fprop("textCursor.log");
     for (int i=0; i<nTables; i++) {
         Reference< XTextTable > sTable = searchTables[i];
         //Reference< TextTable > sTextT( sTable );
@@ -158,8 +166,35 @@ void unoFileObject::searchUnoTables(QString searchStr, vector< Reference< XTextT
                 wCellStr << wText->getString();
             }
             QString cellStr = QString::fromStdString(wCellStr.str());
-            if (cellStr.contains(searchStr, Qt::CaseInsensitive))
+            if (cellStr.contains(searchStr, Qt::CaseInsensitive)) {
                 qDebug() << __PRETTY_FUNCTION__ << searchStr << " was found ";
+                Reference< XPropertySet > xCellProp ( wCell, UNO_QUERY );
+                qDebug() << __PRETTY_FUNCTION__ << xCellProp.is();
+                Any cProp;
+                cProp <<= (sal_Bool)false;
+                xCellProp->setPropertyValue(OUString::createFromAscii("BackTransparent"), cProp);
+                Reference< XTextCursor > xTextCursor = wText->createTextCursor();
+                cProp <<= FontWeight::BOLD;
+                Reference< XPropertySet > oCPS( xTextCursor, UNO_QUERY );
+                Reference< XPropertySetInfo > propList (oCPS->getPropertySetInfo ());
+                Sequence< Property > textCursorProps = propList->getProperties();
+                for (Property* pProp = textCursorProps.begin();
+                        pProp != textCursorProps.end();
+                        pProp++) {
+                    stringstream propStr;
+                    propStr << pProp->Name;// << ' ' << pProp->Type;
+                    fprop << propStr.str() << endl;
+                    qDebug() << __PRETTY_FUNCTION__ << QString::fromStdString(propStr.str()); 
+                }
+                oCPS->setPropertyValue(OUString::createFromAscii("CharWeight"), cProp);
+                cProp <<= (long)0xFF0000;
+                try {
+                    oCPS->setPropertyValue(OUString::createFromAscii("CharBackColor"), cProp);
+                }
+                catch (com::sun::star::lang::IllegalArgumentException& e) {
+                    continue;
+                }
+            }
         }
     }
 }
