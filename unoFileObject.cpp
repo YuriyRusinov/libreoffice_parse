@@ -187,11 +187,15 @@ void unoFileObject::searchUnoTables(QString searchStr, vector< Reference< XTextT
                     qDebug() << __PRETTY_FUNCTION__ << QString::fromStdString(propStr.str()); 
                 }
                 oCPS->setPropertyValue(OUString::createFromAscii("CharWeight"), cProp);
-                cProp <<= (long)0xFF0000;
+                Any colorProp;
+                colorProp <<= (int)0x0000FF;
                 try {
-                    oCPS->setPropertyValue(OUString::createFromAscii("CharBackColor"), cProp);
+                    oCPS->setPropertyValue(OUString::createFromAscii("CharBackColor"), colorProp);
                 }
                 catch (com::sun::star::lang::IllegalArgumentException& e) {
+                    stringstream cvalstr;
+                    cvalstr << colorProp;
+                    qDebug() << __PRETTY_FUNCTION__ << "IllegalArgumentException, position is " << e.ArgumentPosition << " value is " << cvalstr.str().c_str();
                     continue;
                 }
             }
