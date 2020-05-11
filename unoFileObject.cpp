@@ -35,6 +35,7 @@ using std::endl;
 using std::ofstream;
 using std::stringstream;
 using std::string;
+using std::hex;
 
 using namespace com::sun::star::io;
 using namespace com::sun::star::ucb;
@@ -150,7 +151,7 @@ void unoFileObject::searchUnoTables(QString searchStr, vector< Reference< XTextT
     qDebug() << __PRETTY_FUNCTION__ << searchStr;
     int nTables = searchTables.size();
     Reference< XInterface  > wCellRef = _xOfficeServiceManager->createInstance( OUString::createFromAscii( "com.sun.star.text.Cell" ));
-    std::ofstream fprop("textCursor.log");
+    std::ofstream fprop("textCell.log");
     for (int i=0; i<nTables; i++) {
         Reference< XTextTable > sTable = searchTables[i];
         //Reference< TextTable > sTextT( sTable );
@@ -161,43 +162,52 @@ void unoFileObject::searchUnoTables(QString searchStr, vector< Reference< XTextT
             Reference< XCell > wCell = sTable->getCellByName(*ptabCell);
             Reference< XText > wText = Reference< XText > (wCell, UNO_QUERY);
             //qDebug() << __PRETTY_FUNCTION__ << wCell->getType() << wText.is();
+            Reference< XTextCursor > xTextCursor = wText->createTextCursor();
             stringstream wCellStr;
             if (wText.is()) {
                 wCellStr << wText->getString();
             }
             QString cellStr = QString::fromStdString(wCellStr.str());
             if (cellStr.contains(searchStr, Qt::CaseInsensitive)) {
-                qDebug() << __PRETTY_FUNCTION__ << searchStr << " was found ";
+                xTextCursor->gotoStart(true);
+                qDebug() << __PRETTY_FUNCTION__ << searchStr << " was found, cell address is " << wCell.get();
                 Reference< XPropertySet > xCellProp ( wCell, UNO_QUERY );
                 qDebug() << __PRETTY_FUNCTION__ << xCellProp.is();
                 Any cProp;
                 cProp <<= (sal_Bool)false;
                 xCellProp->setPropertyValue(OUString::createFromAscii("BackTransparent"), cProp);
-                Reference< XTextCursor > xTextCursor = wText->createTextCursor();
                 cProp <<= FontWeight::BOLD;
-                Reference< XPropertySet > oCPS( xTextCursor, UNO_QUERY );
+                Reference< XPropertySet > oCPS( wCell, UNO_QUERY );
                 Reference< XPropertySetInfo > propList (oCPS->getPropertySetInfo ());
-                Sequence< Property > textCursorProps = propList->getProperties();
-                for (Property* pProp = textCursorProps.begin();
-                        pProp != textCursorProps.end();
+                Sequence< Property > textCellProps = propList->getProperties();
+                for (Property* pProp = textCellProps.begin();
+                        pProp != textCellProps.end();
                         pProp++) {
                     stringstream propStr;
                     propStr << pProp->Name;// << ' ' << pProp->Type;
                     fprop << propStr.str() << endl;
-                    qDebug() << __PRETTY_FUNCTION__ << QString::fromStdString(propStr.str()); 
                 }
-                oCPS->setPropertyValue(OUString::createFromAscii("CharWeight"), cProp);
-                Any colorProp;
-                colorProp <<= (int)0x0000FF;
+                try {
+                    oCPS->setPropertyValue(OUString::createFromAscii("CharWeight"), cProp);
+                }
+                catch (com::sun::star::lang::IllegalArgumentException& e) {
+                    stringstream cvalstr;
+                    cvalstr << hex << cProp;
+                    qDebug() << __PRETTY_FUNCTION__ << "IllegalArgumentException, position is " << e.ArgumentPosition << " value is " << cvalstr.str().c_str();
+                    continue;
+                }
+/*                 Any colorProp;
+                colorProp <<= (long)0x0000FF;
                 try {
                     oCPS->setPropertyValue(OUString::createFromAscii("CharBackColor"), colorProp);
                 }
                 catch (com::sun::star::lang::IllegalArgumentException& e) {
                     stringstream cvalstr;
-                    cvalstr << colorProp;
+                    cvalstr << hex << colorProp;
                     qDebug() << __PRETTY_FUNCTION__ << "IllegalArgumentException, position is " << e.ArgumentPosition << " value is " << cvalstr.str().c_str();
                     continue;
-                }
+                }*/
+                xTextCursor->gotoEnd(true);
             }
         }
     }
