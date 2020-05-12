@@ -134,8 +134,8 @@ include_directories(../src)
 #set(QtUno_library PROPERTY IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/src)
 
 link_directories(${CMAKE_SOURCE_DIR}/build/src)
-link_directories(${CMAKE_CURRENT_BINARY_DIR}/src)
-add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UIS_HDRS} ${RESOURCES} ${OOOSDK_LIBRARIES1} ${OOOSDK_LIBRARIES2} ${OOOSDK_LIBRARIES3} ${OOOSDK_LIBRARIES4} ${OOOSDK_LIBRARIES5} ${CMAKE_CURRENT_BINARY_DIR}/../../build/src/libQtUno.so)
+link_directories(${CMAKE_CURRENT_BINARY_DIR}/../src)
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UIS_HDRS} ${RESOURCES} ${OOOSDK_LIBRARIES1} ${OOOSDK_LIBRARIES2} ${OOOSDK_LIBRARIES3} ${OOOSDK_LIBRARIES4} ${OOOSDK_LIBRARIES5} )
 add_dependencies(${PROJECT_NAME} _oooheaders_app)
 #add_dependencies(${PROJECT_NAME} ${QtUno})
 
