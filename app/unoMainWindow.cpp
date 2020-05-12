@@ -65,6 +65,7 @@ UnoMainWindow::UnoMainWindow(QWidget *parent)
     QObject::connect(_UI->actOpen, &QAction::triggered, this, &UnoMainWindow::slotOpen);
     QObject::connect(_UI->actQuit, &QAction::triggered, this, &QMainWindow::close);
     QObject::connect(this, &UnoMainWindow::initUnoComponents, _unoFObj, &unoFileObject::initUnoComponents);
+    QObject::connect(_unoFObj, &unoFileObject::viewWidget, this, &UnoMainWindow::slotAddWindow);
 }
 
 UnoMainWindow::~UnoMainWindow() {
@@ -192,8 +193,15 @@ void UnoMainWindow::slotOpen() {
     unoFileWidget* w = qobject_cast<unoFileWidget*>(_unoFObj->guiView(fileUrl));
     w->setText(QString::fromStdString(textStr.str()));
     w->setTablesModel(tModel);
+    slotAddWindow(w);
+    operator delete( fileContent );
+}
+
+void UnoMainWindow::slotAddWindow(QWidget* w) {
+    if (!w)
+        return;
+
     w->setAttribute(Qt::WA_DeleteOnClose);
     QMdiSubWindow * subW = _mdiArea->addSubWindow(w);
     w->show();
-    operator delete( fileContent );
 }

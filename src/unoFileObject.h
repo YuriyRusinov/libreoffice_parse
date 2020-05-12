@@ -60,9 +60,10 @@ public slots:
 
 signals:
     void updateTables(QModelIndex wTableIndex, Reference< XTextTable > wTable);
+    void viewWidget(QWidget* w);
 
 private slots:
-    void searchUnoTables(QString searchStr, vector< Reference< XTextTable > > searchTables);
+    void searchUnoTables(QString searchStr, vector< Reference< XTextTable > > searchTables, QStringList searchTableNames);
     void slotTableAction(QModelIndex tableIndex, Reference< XTextTable > wTable, int tableActCode, int tableCoordPar, int iPar);
     void saveWorkFile(QUrl saveFileUrl);
 

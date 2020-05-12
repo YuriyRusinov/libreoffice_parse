@@ -142,18 +142,21 @@ void unoFileWidget::slotSearch() {
     QAbstractItemModel* stModelRet = uSearchForm->getDocTablesModel();
     int nTables = stModelRet->rowCount();
     vector< Reference< XTextTable > > selTables;
+    QStringList selTableNames;
     for (int i=0; i<nTables; i++) {
         QModelIndex tIndex = stModelRet->index(i, 0);
         Qt::CheckState isTableChecked = stModelRet->data(tIndex, Qt::CheckStateRole).value<Qt::CheckState>();
         if (isTableChecked == Qt::Checked) {
             Reference< XTextTable > table = stModelRet->data(tIndex, Qt::UserRole).value< Reference< XTextTable > >();
+            QString tableName = stModelRet->data(tIndex, Qt::DisplayRole).toString();
             selTables.push_back( table );
+            selTableNames.append( tableName );
         }
     }
     qDebug() << __PRETTY_FUNCTION__ << searchString;
     delete uSearchForm;
     if (!selTables.empty())
-        emit search(searchString, selTables);
+        emit search(searchString, selTables, selTableNames);
 }
 
 void unoFileWidget::slotAddRowToTable() {

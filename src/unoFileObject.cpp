@@ -23,12 +23,16 @@
 #include <com/sun/star/awt/FontWeight.hpp>
 #include <com/sun/star/beans/XPropertySetInfo.hpp>
 #include <com/sun/star/beans/Property.hpp>
+#include <com/sun/star/table/XCellRange.hpp>
+#include <com/sun/star/table/XTable.hpp>
+#include <com/sun/star/lang/IndexOutOfBoundsException.hpp>
 
 #include <QFile>
 #include <QUrl>
 #include <QtDebug>
 #include "unoFileObject.h"
 #include "unoFileWidget.h"
+#include "unoSearchResultsForm.h"
 
 using std::cerr;
 using std::endl;
@@ -41,6 +45,7 @@ using namespace com::sun::star::io;
 using namespace com::sun::star::ucb;
 using namespace com::sun::star::awt;
 using namespace com::sun::star::beans;
+using namespace com::sun::star::lang;
 
 using ::rtl::OUString;
 using ::rtl::OUStringBuffer;
@@ -147,70 +152,50 @@ void unoFileObject::initUnoComponents() {
     init();
 }
 
-void unoFileObject::searchUnoTables(QString searchStr, vector< Reference< XTextTable > > searchTables) {
+void unoFileObject::searchUnoTables(QString searchStr, vector< Reference< XTextTable > > searchTables, QStringList searchTableNames) {
     qDebug() << __PRETTY_FUNCTION__ << searchStr;
     int nTables = searchTables.size();
+    unoSearchResultsForm* uResForm = new unoSearchResultsForm(searchStr, searchTables);
     Reference< XInterface  > wCellRef = _xOfficeServiceManager->createInstance( OUString::createFromAscii( "com.sun.star.text.Cell" ));
-    std::ofstream fprop("textCell.log");
     for (int i=0; i<nTables; i++) {
         Reference< XTextTable > sTable = searchTables[i];
-        //Reference< TextTable > sTextT( sTable );
-        Sequence< OUString > tableCellNames = sTable->getCellNames();
-        for (::rtl::OUString* ptabCell = tableCellNames.begin();
-                ptabCell != tableCellNames.end();
-                ptabCell++) {
-            Reference< XCell > wCell = sTable->getCellByName(*ptabCell);
-            Reference< XText > wText = Reference< XText > (wCell, UNO_QUERY);
-            //qDebug() << __PRETTY_FUNCTION__ << wCell->getType() << wText.is();
-            Reference< XTextCursor > xTextCursor = wText->createTextCursor();
-            stringstream wCellStr;
-            if (wText.is()) {
-                wCellStr << wText->getString();
-            }
-            QString cellStr = QString::fromStdString(wCellStr.str());
-            if (cellStr.contains(searchStr, Qt::CaseInsensitive)) {
-                xTextCursor->gotoStart(true);
-                qDebug() << __PRETTY_FUNCTION__ << searchStr << " was found, cell address is " << wCell.get();
-                Reference< XPropertySet > xCellProp ( wCell, UNO_QUERY );
-                qDebug() << __PRETTY_FUNCTION__ << xCellProp.is();
-                Any cProp;
-                cProp <<= (sal_Bool)false;
-                xCellProp->setPropertyValue(OUString::createFromAscii("BackTransparent"), cProp);
-                cProp <<= FontWeight::BOLD;
-                Reference< XPropertySet > oCPS( wCell, UNO_QUERY );
-                Reference< XPropertySetInfo > propList (oCPS->getPropertySetInfo ());
-                Sequence< Property > textCellProps = propList->getProperties();
-                for (Property* pProp = textCellProps.begin();
-                        pProp != textCellProps.end();
-                        pProp++) {
-                    stringstream propStr;
-                    propStr << pProp->Name;// << ' ' << pProp->Type;
-                    fprop << propStr.str() << endl;
-                }
+        Reference< XCellRange > tableCells( sTable, UNO_QUERY );
+        qDebug() << __PRETTY_FUNCTION__ << "Cell range was " << (tableCells.is() ? "initialized" : "not initialized");
+        Reference< XTableRows > tabRows( sTable->getRows() );
+        Reference< XTableColumns > tabCols( sTable->getColumns() );
+        long nRow = tabRows->getCount();
+        long nCols = tabCols->getCount();
+        qDebug() << __PRETTY_FUNCTION__ << "Table row number = " << nRow << ", column number = " << nCols;
+        for (long ir=0; ir<nRow; ir++) {
+            for (long jc=0; jc<nCols; jc++) {
+                Reference< XCell > wCell = nullptr;
                 try {
-                    oCPS->setPropertyValue(OUString::createFromAscii("CharWeight"), cProp);
+                    //
+                    // Первая координата -- номер столбца !
+                    //
+                    wCell = tableCells->getCellByPosition(jc, ir);
                 }
-                catch (com::sun::star::lang::IllegalArgumentException& e) {
-                    stringstream cvalstr;
-                    cvalstr << hex << cProp;
-                    qDebug() << __PRETTY_FUNCTION__ << "IllegalArgumentException, position is " << e.ArgumentPosition << " value is " << cvalstr.str().c_str();
+                catch( IndexOutOfBoundsException& e ) {
+                    stringstream err_mess;
+                    err_mess << e.Message;
+                    qDebug() << __PRETTY_FUNCTION__ << "Index out of bounds " << err_mess.str().c_str() << ' ' << ir << ' ' << jc;
                     continue;
                 }
-/*                 Any colorProp;
-                colorProp <<= (long)0x0000FF;
-                try {
-                    oCPS->setPropertyValue(OUString::createFromAscii("CharBackColor"), colorProp);
+                Reference< XText > wText = Reference< XText > (wCell, UNO_QUERY);
+                //qDebug() << __PRETTY_FUNCTION__ << wCell->getType() << wText.is();
+                Reference< XTextCursor > xTextCursor = wText->createTextCursor();
+                stringstream wCellStr;
+                if (wText.is()) {
+                    wCellStr << wText->getString();
                 }
-                catch (com::sun::star::lang::IllegalArgumentException& e) {
-                    stringstream cvalstr;
-                    cvalstr << hex << colorProp;
-                    qDebug() << __PRETTY_FUNCTION__ << "IllegalArgumentException, position is " << e.ArgumentPosition << " value is " << cvalstr.str().c_str();
-                    continue;
-                }*/
-                xTextCursor->gotoEnd(true);
+                QString cellStr = QString::fromStdString(wCellStr.str());
+                if (cellStr.contains(searchStr, Qt::CaseInsensitive)) {
+                    qDebug() << __PRETTY_FUNCTION__ << searchStr << " was found at (" << ir << ',' << jc << ")";
+                }
             }
         }
     }
+    emit viewWidget( uResForm );
 }
 
 void unoFileObject::slotTableAction(QModelIndex tableIndex, Reference< XTextTable > wTable, int tableActCode, int tableCoordPar, int iPar) {

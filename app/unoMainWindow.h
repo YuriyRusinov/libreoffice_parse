@@ -32,6 +32,7 @@ signals:
 public slots:
 private slots:
     void slotOpen();
+    void slotAddWindow(QWidget* w);
 
 private:
     Ui::uno_main_window* _UI;
