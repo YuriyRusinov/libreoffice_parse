@@ -62,12 +62,12 @@ find_path(OOOSDK_DIR
 
 if(OOOSDK_DIR)
     message(STATUS "app cppumaker was found")
-    if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/src/generated_files)
-        file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/generated_files)
-    endif(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/src/generated_files)
-    set(_OOOINCLUDE ${CMAKE_CURRENT_BINARY_DIR}/src/generated_files)
+    if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/../src/generated_files)
+        file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../src/generated_files)
+    endif(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/../src/generated_files)
+    set(_OOOINCLUDE ${CMAKE_CURRENT_BINARY_DIR}/../src/generated_files)
 
-    include_directories(${CMAKE_CURRENT_BINARY_DIR}/src/generated_files)
+    include_directories(${CMAKE_CURRENT_BINARY_DIR}/../src/generated_files)
     add_custom_command(
             OUTPUT ${_OOOINCLUDE}/com/sun/star/uno/Exception.hpp
             COMMAND ${OOOSDK_DIR}/sdk/bin/cppumaker
@@ -78,7 +78,8 @@ if(OOOSDK_DIR)
     )
     add_custom_target(_oooheaders_app ALL
         DEPENDS ${_OOOINCLUDE}/com/sun/star/uno/Exception.hpp)
-    add_custom_command(TARGET _oooheaders_app PRE_BUILD COMMAND ${OOOSDK_DIR}/sdk/bin/cppumaker -O ${CMAKE_CURRENT_BINARY_DIR}/src/generated_files ${OOOSDK_DIR}/program/types.rdb ${OOOSDK_DIR}/program/types/oovbaapi.rdb ${OOOSDK_DIR}/program/types/offapi.rdb)
+    add_custom_command(TARGET _oooheaders_app PRE_BUILD COMMAND
+        ${OOOSDK_DIR}/sdk/bin/cppumaker -O ${CMAKE_CURRENT_BINARY_DIR}/../src/generated_files ${OOOSDK_DIR}/program/types.rdb ${OOOSDK_DIR}/program/types/oovbaapi.rdb ${OOOSDK_DIR}/program/types/offapi.rdb)
 
     find_path(CPPUHELPER_INCLUDE_DIR
             NAMES cppuhelper/bootstrap.hxx
@@ -126,17 +127,16 @@ else(OOOSDK_DIR)
     set(OOOSDK_ERROR "Could not find sdk/bin/cppumaker
             or program/offapi.rdb for OOoSDK.")
 endif(OOOSDK_DIR)
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/src/generated_files)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/../src/generated_files)
 include_directories(${OOOSDK_INCLUDE_DIRS})
 
-#find_library(QtUno unoFileObject PATHS ${CMAKE_CURRENT_BINARY_DIR}/../../build/src)
 include_directories(../src)
-#set(QtUno_library PROPERTY IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/src)
 
 link_directories(${CMAKE_SOURCE_DIR}/build/src)
 link_directories(${CMAKE_CURRENT_BINARY_DIR}/../src)
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UIS_HDRS} ${RESOURCES} ${OOOSDK_LIBRARIES1} ${OOOSDK_LIBRARIES2} ${OOOSDK_LIBRARIES3} ${OOOSDK_LIBRARIES4} ${OOOSDK_LIBRARIES5} )
 add_dependencies(${PROJECT_NAME} _oooheaders_app)
-#add_dependencies(${PROJECT_NAME} ${QtUno})
 
-target_link_libraries(${PROJECT_NAME} Qt5::Widgets ${OOOSDK_LIBRARIES1} ${OOOSDK_LIBRARIES2} ${OOOSDK_LIBRARIES3} ${OOOSDK_LIBRARIES4} ${OOOSDK_LIBRARIES5} ${CMAKE_CURRENT_BINARY_DIR}/../../build/src/libQtUno.so)
+target_link_libraries(${PROJECT_NAME} Qt5::Widgets ${OOOSDK_LIBRARIES1}
+    ${OOOSDK_LIBRARIES2} ${OOOSDK_LIBRARIES3} ${OOOSDK_LIBRARIES4}
+    ${OOOSDK_LIBRARIES5} QtUno)
