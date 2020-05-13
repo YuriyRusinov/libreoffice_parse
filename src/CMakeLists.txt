@@ -38,6 +38,7 @@ set(HEADERS
     unoSearchTablesModel.h
     unoSearchDelegate.h
     unoSearchResultsForm.h
+    unoSearchResultsModel.h
 )
 
 set(FORMS
@@ -54,6 +55,7 @@ set(SOURCES
     unoSearchTablesModel.cpp
     unoSearchDelegate.cpp
     unoSearchResultsForm.cpp
+    unoSearchResultsModel.cpp
 )
 
 set(RESOURCES

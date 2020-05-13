@@ -9,6 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <cppuhelper/bootstrap.hxx>
 
 #include <osl/file.hxx>
@@ -33,6 +34,7 @@
 #include "unoFileObject.h"
 #include "unoFileWidget.h"
 #include "unoSearchResultsForm.h"
+#include "unoSearchResultsModel.h"
 
 using std::cerr;
 using std::endl;
@@ -40,6 +42,7 @@ using std::ofstream;
 using std::stringstream;
 using std::string;
 using std::hex;
+using std::pair;
 
 using namespace com::sun::star::io;
 using namespace com::sun::star::ucb;
@@ -157,6 +160,9 @@ void unoFileObject::searchUnoTables(QString searchStr, vector< Reference< XTextT
     int nTables = searchTables.size();
     unoSearchResultsForm* uResForm = new unoSearchResultsForm(searchStr, searchTables);
     Reference< XInterface  > wCellRef = _xOfficeServiceManager->createInstance( OUString::createFromAscii( "com.sun.star.text.Cell" ));
+    QStringList searchResTables;
+    vector< Reference< XTextTable > > searchResXTables;
+    vector< pair<long, long> > tIndices;
     for (int i=0; i<nTables; i++) {
         Reference< XTextTable > sTable = searchTables[i];
         Reference< XCellRange > tableCells( sTable, UNO_QUERY );
@@ -191,10 +197,18 @@ void unoFileObject::searchUnoTables(QString searchStr, vector< Reference< XTextT
                 QString cellStr = QString::fromStdString(wCellStr.str());
                 if (cellStr.contains(searchStr, Qt::CaseInsensitive)) {
                     qDebug() << __PRETTY_FUNCTION__ << searchStr << " was found at (" << ir << ',' << jc << ")";
+                    pair<long, long> matrInd (ir, jc);
+                    tIndices.push_back( matrInd );
+                    if (!searchResTables.contains(searchTableNames[i])) {
+                        searchResTables << searchTableNames[i];
+                        searchResXTables.push_back( sTable );
+                    }
                 }
             }
         }
     }
+    unoSearchResultsModel* resModel = new unoSearchResultsModel(searchResTables, searchResXTables, tIndices);
+    uResForm->setResultsModel( resModel );
     emit viewWidget( uResForm );
 }
 
