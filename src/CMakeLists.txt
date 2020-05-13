@@ -39,11 +39,15 @@ set(HEADERS
     unoSearchDelegate.h
     unoSearchResultsForm.h
     unoSearchResultsModel.h
+    unoTableCellForm.h
+    unoCellEditor.h
 )
 
 set(FORMS
     uno_search_form.ui
     uno_search_results_form.ui
+    uno_table_cell_form.ui
+    uno_cell_editor.ui
 )
 
 set(SOURCES
@@ -56,6 +60,8 @@ set(SOURCES
     unoSearchDelegate.cpp
     unoSearchResultsForm.cpp
     unoSearchResultsModel.cpp
+    unoTableCellForm.cpp
+    unoCellEditor.cpp
 )
 
 set(RESOURCES

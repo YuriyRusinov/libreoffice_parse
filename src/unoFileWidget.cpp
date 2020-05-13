@@ -27,6 +27,7 @@
 #include "unoTablesModel.h"
 #include "unoSearchForm.h"
 #include "unoSearchTablesModel.h"
+#include "unoTableCellForm.h"
 
 unoFileWidget::unoFileWidget(const QUrl& fileUrl, QWidget* parent, Qt::WindowFlags flags)
     : QWidget(parent, flags),
@@ -35,8 +36,7 @@ unoFileWidget::unoFileWidget(const QUrl& fileUrl, QWidget* parent, Qt::WindowFla
     _spView(new QSplitter),
     _fileEditW(new QTextEdit),
     _wTables(new QWidget),
-    _tvTables(new QTreeView),
-    _tbTableActions(new QToolBar)
+    _tvTables(new QTreeView)
 {
     qDebug() << __PRETTY_FUNCTION__ << _fileUrl;
     QGridLayout * gridLay = new QGridLayout(this);
@@ -49,39 +49,11 @@ unoFileWidget::unoFileWidget(const QUrl& fileUrl, QWidget* parent, Qt::WindowFla
     hTableLay->addWidget(_tvTables);
     _tvTables->setSelectionMode(QAbstractItemView::ExtendedSelection);
     _tvTables->setSelectionBehavior(QAbstractItemView::SelectRows);
-    _tbTableActions->setOrientation(Qt::Vertical);
-    hTableLay->addWidget(_tbTableActions);
 
-    QAction* actOpenFile  = _tbActions->addAction(QIcon(":/libre_resources/open.png"), tr("Open ..."));
-    QAction* actClose = _tbActions->addAction(QIcon(":/libre_resources/close.png"), tr("Close"));
-    QAction* actSep = _tbActions->addSeparator();
-    QAction* actSearch = _tbActions->addAction(QIcon(":/libre_resources/search.jpg"), tr("Search ..."));
-    actSearch->setToolTip(tr("Search text in table cells"));
-    QAction* actSaveFile = _tbActions->addAction(QIcon(":/libre_resources/save.png"), tr("Save file as ..."));
-    actSaveFile->setToolTip(tr("Save file as ..."));
-
-    QAction* actTableRowAdd = _tbTableActions->addAction(QIcon(":/libre_resources/add_row.png"), tr("Add row to selected table"));
-    actTableRowAdd->setToolTip(tr("Add row to selected table"));
-    QAction* actTableRowDel = _tbTableActions->addAction(QIcon(":/libre_resources/del_row.png"), tr("Delete row from selected table"));
-    actTableRowDel->setToolTip(tr("Remove row from selected table"));
-    QAction* actTableColumnAdd = _tbTableActions->addAction(QIcon(":/libre_resources/add_column.png"), tr("Add column to selected table"));
-    actTableColumnAdd->setToolTip(tr("Add column to selected table"));
-    QAction* actTableColumnDel = _tbTableActions->addAction(QIcon(":/libre_resources/del_column.png"), tr("Delete column from selected table"));
-    actTableColumnDel->setToolTip(tr("Remove column from selected table"));
-
-    QObject::connect(actTableRowAdd, &QAction::triggered, this, &unoFileWidget::slotAddRowToTable);
-    QObject::connect(actTableRowDel, &QAction::triggered, this, &unoFileWidget::slotDelRowFromTable);
-    QObject::connect(actTableColumnAdd, &QAction::triggered, this, &unoFileWidget::slotAddColumnToTable);
-    QObject::connect(actTableColumnDel, &QAction::triggered, this, &unoFileWidget::slotDelColumnFromTable);
-
-    QObject::connect(actOpenFile, &QAction::triggered, this, &unoFileWidget::slotFileOpen);
-    QObject::connect(actSaveFile, &QAction::triggered, this, &unoFileWidget::slotSaveFile);
-    QObject::connect(actSearch, &QAction::triggered, this, &unoFileWidget::slotSearch);
-    QObject::connect(actClose, &QAction::triggered, this, &unoFileWidget::slotFileClose);
+    this->initActions();
 }
 
 unoFileWidget::~unoFileWidget() {
-    delete _tbTableActions;
     delete _tvTables;
     delete _wTables;
     delete _fileEditW;
@@ -247,4 +219,59 @@ int unoFileWidget::getTableParameter(const QModelIndexList& selIndexes, unoFileW
     if (ok)
         return nVal;
     return -1;
+}
+
+void unoFileWidget::slotEditCellInTable() {
+    Reference< XTextTable > wTable = getTable();
+    if( !wTable.is() )
+        return;
+    Reference< XTableRows > tabRows( wTable->getRows() );
+    Reference< XTableColumns > tabCols( wTable->getColumns() );
+    int nRow = (int)tabRows->getCount()-1;
+    int nCols = (int)tabCols->getCount()-1;
+    UnoTableCellForm* tabCellForm = new UnoTableCellForm( nRow, nCols );
+    if( !tabCellForm || tabCellForm->exec() != QDialog::Accepted) {
+        if (tabCellForm)
+            delete tabCellForm;
+        return;
+    }
+
+    int ir = tabCellForm->getRow();
+    int jc = tabCellForm->getColumn();
+    emit editTableCell( wTable, ir, jc);
+}
+
+void unoFileWidget::initActions() {
+    QAction* actOpenFile  = _tbActions->addAction(QIcon(":/libre_resources/open.png"), tr("Open ..."));
+    QAction* actClose = _tbActions->addAction(QIcon(":/libre_resources/close.png"), tr("Close"));
+    QAction* actSep = _tbActions->addSeparator();
+    QAction* actTableCellEdit = _tbActions->addAction( QIcon(":/libre_resources/edit.png"), tr("Edit cell in table") );
+    actTableCellEdit->setToolTip(tr("Edit cell content in selected table"));
+
+    QAction* actSearch = _tbActions->addAction(QIcon(":/libre_resources/search.jpg"), tr("Search ..."));
+    actSearch->setToolTip(tr("Search text in table cells"));
+    QAction* actSep1 = _tbActions->addSeparator();
+    QAction* actTableRowAdd = _tbActions->addAction(QIcon(":/libre_resources/add_row.png"), tr("Add row to selected table"));
+    actTableRowAdd->setToolTip(tr("Add row to selected table"));
+    QAction* actTableRowDel = _tbActions->addAction(QIcon(":/libre_resources/del_row.png"), tr("Delete row from selected table"));
+    actTableRowDel->setToolTip(tr("Remove row from selected table"));
+    QAction* actTableColumnAdd = _tbActions->addAction(QIcon(":/libre_resources/add_column.png"), tr("Add column to selected table"));
+    actTableColumnAdd->setToolTip(tr("Add column to selected table"));
+    QAction* actTableColumnDel = _tbActions->addAction(QIcon(":/libre_resources/del_column.png"), tr("Delete column from selected table"));
+    actTableColumnDel->setToolTip(tr("Remove column from selected table"));
+
+    QAction* actSep2 = _tbActions->addSeparator();
+    QAction* actSaveFile = _tbActions->addAction(QIcon(":/libre_resources/save.png"), tr("Save file as ..."));
+    actSaveFile->setToolTip(tr("Save file as ..."));
+
+    QObject::connect(actTableRowAdd, &QAction::triggered, this, &unoFileWidget::slotAddRowToTable);
+    QObject::connect(actTableRowDel, &QAction::triggered, this, &unoFileWidget::slotDelRowFromTable);
+    QObject::connect(actTableColumnAdd, &QAction::triggered, this, &unoFileWidget::slotAddColumnToTable);
+    QObject::connect(actTableColumnDel, &QAction::triggered, this, &unoFileWidget::slotDelColumnFromTable);
+    QObject::connect(actTableCellEdit, &QAction::triggered, this, &unoFileWidget::slotEditCellInTable);
+
+    QObject::connect(actOpenFile, &QAction::triggered, this, &unoFileWidget::slotFileOpen);
+    QObject::connect(actSaveFile, &QAction::triggered, this, &unoFileWidget::slotSaveFile);
+    QObject::connect(actSearch, &QAction::triggered, this, &unoFileWidget::slotSearch);
+    QObject::connect(actClose, &QAction::triggered, this, &unoFileWidget::slotFileClose);
 }

@@ -54,6 +54,7 @@ private slots:
     void slotDelRowFromTable();
     void slotAddColumnToTable();
     void slotDelColumnFromTable();
+    void slotEditCellInTable();
     void updateTableModel(QModelIndex tabIndex, Reference< XTextTable > wTable);
     void slotSaveFile();
 
@@ -61,11 +62,13 @@ signals:
     void search(QString searchStr, vector< Reference< XTextTable > > searchTables, QStringList tableNames);
     void tableActSignal(QModelIndex tabIndex, Reference< XTextTable > wTable, int tableActCode, int tableCoordPar, int iPar);
     void saveWriterFile(QUrl saveFileUrl);
+    void editTableCell( Reference< XTextTable >, int iRow, int jColumn );
 
 private:
     QModelIndexList getTableIndexes() const;
     Reference< XTextTable > getTable();
     int getTableParameter(const QModelIndexList& selIndexes, tableActions tabActCode, tableCellParams tabParam);
+    void initActions();
 
 private:
     QUrl _fileUrl;
@@ -74,7 +77,6 @@ private:
     QTextEdit* _fileEditW;
     QWidget* _wTables;
     QTreeView* _tvTables;
-    QToolBar* _tbTableActions;
 
     friend class unoFileObject;
 

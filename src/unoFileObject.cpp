@@ -29,12 +29,14 @@
 #include <com/sun/star/lang/IndexOutOfBoundsException.hpp>
 
 #include <QFile>
+#include <QPlainTextEdit>
 #include <QUrl>
 #include <QtDebug>
 #include "unoFileObject.h"
 #include "unoFileWidget.h"
 #include "unoSearchResultsForm.h"
 #include "unoSearchResultsModel.h"
+#include "unoCellEditor.h"
 
 using std::cerr;
 using std::endl;
@@ -67,6 +69,7 @@ QWidget* unoFileObject::guiView(const QUrl& fileUrl, QWidget* parent, Qt::Window
     QObject::connect(unoFileW, &unoFileWidget::search, this, &unoFileObject::searchUnoTables);
 
     QObject::connect(unoFileW, &unoFileWidget::tableActSignal, this, &unoFileObject::slotTableAction);
+    QObject::connect(unoFileW, &unoFileWidget::editTableCell, this, &unoFileObject::slotTableEditCell);
 
     QObject::connect(unoFileW, &unoFileWidget::saveWriterFile, this, &unoFileObject::saveWorkFile);
     QObject::connect(this, &unoFileObject::updateTables, unoFileW, &unoFileWidget::updateTableModel);
@@ -295,3 +298,11 @@ void unoFileObject::saveWorkFile(QUrl saveFileUrl) {
     xOut->writeBytes(bseq);
 }
 
+void unoFileObject::slotTableEditCell(Reference< XTextTable > wTable, int iRow, int jColumn) {
+    qDebug() << __PRETTY_FUNCTION__ << wTable.is() << iRow << jColumn;
+    Reference< XCellRange > tableCells( wTable, UNO_QUERY );
+    Reference< XCell > wCell = tableCells->getCellByPosition( jColumn, iRow );
+    unoCellEditor* uce = new unoCellEditor( wCell, iRow, jColumn );
+
+    emit viewWidget( uce );
+}
