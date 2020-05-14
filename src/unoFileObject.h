@@ -27,6 +27,7 @@
 #include <com/sun/star/bridge/XUnoUrlResolver.hpp>
 #include <com/sun/star/beans/XPropertySet.hpp>
 #include <com/sun/star/frame/XDesktop2.hpp>
+#include <com/sun/star/frame/XStorable.hpp>
 #include <com/sun/star/text/XTextTable.hpp>
 
 using namespace com::sun::star::uno;
@@ -88,6 +89,7 @@ private:
     Reference< XDesktop2 > _xComponentLoader;
     Reference< XInterface > _xSimpleFileAccessInterface;
     Reference< XMultiServiceFactory > _xOfficeServiceManager;
+    Reference< XStorable > _xStorable;
 
 private:
     Q_OBJECT

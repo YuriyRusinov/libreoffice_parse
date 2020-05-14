@@ -147,9 +147,9 @@ Reference< XComponent > unoFileObject::loadFromURL(const QUrl& fileUrl) {
                     "com.sun.star.ucb.SimpleFileAccess",
                      _xComponentContext )
             );
-    qDebug() << __PRETTY_FUNCTION__ << _xSimpleFileAccessInterface.is() << xComponent.is();
     Reference< XSimpleFileAccess > xSF ( _xSimpleFileAccessInterface, UNO_QUERY );
-    qDebug() << __PRETTY_FUNCTION__ << xSF.is();
+    _xStorable = Reference< XStorable >( xComponent, UNO_QUERY );
+    qDebug() << __PRETTY_FUNCTION__ << "Storable is " << _xStorable.is();
     return xComponent;
 }
 
@@ -277,25 +277,8 @@ void unoFileObject::saveWorkFile(QUrl saveFileUrl) {
     bool isFileExist = QFile::exists(saveFileUrl.path());
     qDebug () << __PRETTY_FUNCTION__ << saveFileUrl << isFileExist;
     cerr << __PRETTY_FUNCTION__ << sDocUrl << endl;
-/*    Reference< XComponent > xWriterComponent = _xComponentLoader->loadComponentFromURL(
-	    (isFileExist ? sDocUrl : "private:factory/swriter"),
-        OUString::createFromAscii("_blank"),
-        0,
-        Sequence < ::com::sun::star::beans::PropertyValue >());
-*/
-    stringstream textStr;
-    textStr << "Hello world" << endl;
-    Sequence< sal_Int8 > bseq (textStr.str().size());
-    for (int i=0; i<textStr.str().size(); i++)
-        bseq[i] = textStr.str().at(i);
-    Reference< XOutputStream > xOut = xSimpleFileAcc->openFileWrite( sDocUrl );
-/*    Reference< XTextDocument > xTextDocument (xWriterComponent, UNO_QUERY);
-    Reference< XText > xText = xTextDocument->getText();
-    Reference< XTextRange > xTextRange = xText->getStart();
-    xTextRange->setString(OUString::createFromAscii(textStr.str().c_str()));
-    //xOut->writeBytes(OUString::createFromAscii(textStr.str().c_str()));
-*/
-    xOut->writeBytes(bseq);
+    Sequence< PropertyValue > props;
+    _xStorable->storeAsURL( sDocUrl, props );
 }
 
 void unoFileObject::slotTableEditCell(Reference< XTextTable > wTable, int iRow, int jColumn) {

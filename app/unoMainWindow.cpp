@@ -111,10 +111,10 @@ void UnoMainWindow::slotOpen() {
 
     osf.close();
 
+#if _UNO_DEBUG_==1
 /*
  *  For debug
  */
-#if _UNO_DEBUG_==1
     QByteArray ba = QByteArray::fromRawData( static_cast<const char*>(fileContent), readBytes );
     QFile fileTest("ttt.odt");
     if (!fileTest.open(QIODevice::WriteOnly))
@@ -122,14 +122,6 @@ void UnoMainWindow::slotOpen() {
     QDataStream tstStr( &fileTest );
     tstStr.writeRawData( ba.constData(), ba.size());
 #endif
-//
-//  From wiki.openoffice.org for tests
-//
-//    Reference < XComponentLoader > xComponentLoader(
-//            xMultiComponentFactoryClient->createInstanceWithContext( OUString(
-//            RTL_CONSTASCII_USTRINGPARAM( "com.sun.star.frame.Desktop" ) ),
-//            xComponentContext ), UNO_QUERY_THROW );
-//
     Reference< XComponent > xComponent = _unoFObj->loadFromURL(fileUrl);
     Reference< XTextDocument > xTextDoc (xComponent, UNO_QUERY );
 #if _UNO_DEBUG_==1
