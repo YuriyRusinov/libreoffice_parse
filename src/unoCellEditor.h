@@ -15,7 +15,10 @@
 #include <com/sun/star/table/XCell.hpp>
 
 using namespace com::sun::star::table;
+using namespace com::sun::star::text;
 using namespace com::sun::star::uno;
+
+class QAbstractButton;
 
 namespace Ui {
     class uno_cell_editor;
@@ -27,8 +30,11 @@ public:
     ~unoCellEditor();
 
 private slots:
+    void buttonClicked( QAbstractButton* button );
     void acceptCell();
-    void close();
+
+protected:
+    void closeEvent( QCloseEvent* event ) override;
 
 signals:
     void updateCell(Reference< XCell >, QString newText);

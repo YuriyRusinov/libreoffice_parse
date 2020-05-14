@@ -41,6 +41,7 @@ set(HEADERS
     unoSearchResultsModel.h
     unoTableCellForm.h
     unoCellEditor.h
+    unoMdiSubWindowCloseFilter.h
 )
 
 set(FORMS
@@ -62,6 +63,7 @@ set(SOURCES
     unoSearchResultsModel.cpp
     unoTableCellForm.cpp
     unoCellEditor.cpp
+    unoMdiSubWindowCloseFilter.cpp
 )
 
 set(RESOURCES

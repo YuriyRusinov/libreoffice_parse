@@ -6,6 +6,7 @@
  *     Ю.Л.Русинов
  */
 #include <sstream>
+#include <QAbstractButton>
 #include <QtDebug>
 #include <com/sun/star/text/XText.hpp>
 
@@ -17,10 +18,10 @@ using std::stringstream;
 
 unoCellEditor::unoCellEditor(Reference< XCell > wCell, int iRow, int jColumn, QWidget* parent, Qt::WindowFlags flags)
     : QDialog( parent, flags ),
-    _UI(new Ui::uno_cell_editor),
-    _wCell(wCell),
-    _iRow(iRow),
-    _jColumn(jColumn) {
+    _UI( new Ui::uno_cell_editor ),
+    _wCell( wCell ),
+    _iRow( iRow ),
+    _jColumn( jColumn ) {
     _UI->setupUi(this);
     if (!wCell.is())
         return;
@@ -32,8 +33,8 @@ unoCellEditor::unoCellEditor(Reference< XCell > wCell, int iRow, int jColumn, QW
 
     wCellStr << wText->getString();
     _UI->tECellEdit->setPlainText( QString::fromStdString(wCellStr.str()) );
+    connect(_UI->buttonBox, &QDialogButtonBox::clicked, this, &unoCellEditor::buttonClicked);
     connect(_UI->buttonBox, &QDialogButtonBox::accepted, this, &unoCellEditor::acceptCell);
-    connect(_UI->buttonBox, &QDialogButtonBox::rejected, this, &unoCellEditor::close);
 }
 
 unoCellEditor::~unoCellEditor() {
@@ -42,14 +43,18 @@ unoCellEditor::~unoCellEditor() {
 
 void unoCellEditor::acceptCell() {
     emit updateCell(_wCell, _UI->tECellEdit->toPlainText());
-    qDebug () << __PRETTY_FUNCTION__ << _UI->tECellEdit->toPlainText();
     if (parentWidget())
         parentWidget()->close();
 }
 
-void unoCellEditor::close() {
-    if (parentWidget())
-        parentWidget()->close();
+void unoCellEditor::buttonClicked(QAbstractButton* button) {
+    if (_UI->buttonBox->buttonRole( button ) == QDialogButtonBox::ApplyRole)
+        emit updateCell(_wCell, _UI->tECellEdit->toPlainText());
+    else if (_UI->buttonBox->buttonRole( button ) == QDialogButtonBox::RejectRole)
+        close();
+}
 
-    close();
+void unoCellEditor::closeEvent( QCloseEvent* event ) {
+    qDebug() << __PRETTY_FUNCTION__;
+    QDialog::closeEvent(event);
 }

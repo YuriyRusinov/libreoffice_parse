@@ -303,6 +303,18 @@ void unoFileObject::slotTableEditCell(Reference< XTextTable > wTable, int iRow, 
     Reference< XCellRange > tableCells( wTable, UNO_QUERY );
     Reference< XCell > wCell = tableCells->getCellByPosition( jColumn, iRow );
     unoCellEditor* uce = new unoCellEditor( wCell, iRow, jColumn );
+    QObject::connect(uce, &unoCellEditor::updateCell, this, &unoFileObject::slotUpdateCell);
 
     emit viewWidget( uce );
+}
+
+void unoFileObject::slotUpdateCell(Reference< XCell > wCell, QString newText) {
+    Reference< XText > xText = Reference<XText>( wCell, UNO_QUERY );
+    OUStringBuffer bufText;
+    bufText.append( newText.utf16() );
+    stringstream textStr;
+    textStr << bufText.toString();
+    qDebug() << __PRETTY_FUNCTION__ << QString::fromStdString(textStr.str());
+
+    xText->setString( bufText.toString() );
 }

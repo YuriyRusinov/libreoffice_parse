@@ -11,6 +11,7 @@
 #include <QFileDialog>
 #include <QFile>
 #include <QDataStream>
+#include <QMdiSubWindow>
 #include <QUrl>
 #include <QtDebug>
 
@@ -36,6 +37,7 @@
 #include "unoFileWidget.h"
 #include "unoMainWindow.h"
 #include "unoTablesModel.h"
+#include "unoMdiSubWindowCloseFilter.h"
 #include "ui_uno_main_window.h"
 
 using std::stringstream;
@@ -203,5 +205,9 @@ void UnoMainWindow::slotAddWindow(QWidget* w) {
 
     w->setAttribute(Qt::WA_DeleteOnClose);
     QMdiSubWindow * subW = _mdiArea->addSubWindow(w);
+    unoMdiSubWindowCloseFilter* subwFilter = new unoMdiSubWindowCloseFilter;
+    w->installEventFilter( subwFilter );
+    subW->setAttribute(Qt::WA_DeleteOnClose, true);
+
     w->show();
 }

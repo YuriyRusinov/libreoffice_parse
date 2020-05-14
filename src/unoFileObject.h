@@ -67,6 +67,7 @@ private slots:
     void slotTableAction(QModelIndex tableIndex, Reference< XTextTable > wTable, int tableActCode, int tableCoordPar, int iPar);
     void saveWorkFile(QUrl saveFileUrl);
     void slotTableEditCell(Reference< XTextTable > wTable, int iRow, int jColumn);
+    void slotUpdateCell(Reference< XCell > wCell, QString newText);
 
 private:
     //
