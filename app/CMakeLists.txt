@@ -139,4 +139,8 @@ add_dependencies(${PROJECT_NAME} _oooheaders_app)
 
 target_link_libraries(${PROJECT_NAME} Qt5::Widgets ${OOOSDK_LIBRARIES1}
     ${OOOSDK_LIBRARIES2} ${OOOSDK_LIBRARIES3} ${OOOSDK_LIBRARIES4}
-    ${OOOSDK_LIBRARIES5} QtUno)
+    ${OOOSDK_LIBRARIES5} qtuno)
+
+install(TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin
+)
