@@ -144,3 +144,6 @@ target_link_libraries(${PROJECT_NAME} Qt5::Widgets ${OOOSDK_LIBRARIES1}
 install(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin
 )
+
+set(CPACK_PACKAGE_EXECUTABLES "app_uno" "app_uno")
+include(CPack)

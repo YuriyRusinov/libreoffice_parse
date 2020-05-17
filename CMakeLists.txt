@@ -6,3 +6,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build)
 
 add_subdirectory(src)
 add_subdirectory(app)
+
+set(CPACK_GENERATOR "DEB")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Yury Rusinov") # required
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "My uno and QT project")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+set(CPACK_PACKAGE_VERSION_MAJOR "1")
+set(CPACK_PACKAGE_VERSION_MINOR "0")
+set(CPACK_PACKAGE_VERSION_PATCH "0")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
+set (CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5core5a (>=5.12), libqt5gui5 (>=5.12), libqt5widgets5 (>=5.12), libreoffice-writer (>=6.4)")
+include(CPack)
