@@ -1,0 +1,2 @@
+/usr/lib/libqtuno.so
+/usr/bin/app_uno
