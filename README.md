@@ -18,17 +18,24 @@ Compile & install из исходных кодов:
     make
     root : make install
 
-Формирование прекомпилированного пакета для Debian/Ubuntu:
+Формирование прекомпилированного пакета с заголовочными файлами только для библиотеки под Debian/Ubuntu:
     mkdir build
     cd build
     cmake ../
     make
     cpack -G DEB
 
-Установка пакета в Debian/Ubuntu
-    root : dpkg -i qtuno-1.0.0-Linux.deb
+Формирование прекомпилированного пакета с заголовочными файлами для библиотеки и работы с libreoffice UNO
+    mkdir build
+    cd build
+    cmake -D_UNO_HEADERS_=1 ../
+    make
+    cpack -G DEB
 
-На выходе будет библиотека и тестовое приложение
+Установка пакета в Debian/Ubuntu
+    root : dpkg -i qtuno[_ooo]-1.0.0-Linux.deb
+
+На выходе будет библиотека c заголовочными файлами и тестовое приложение app_uno
 
 (C) НИИ Рубин
 @author
