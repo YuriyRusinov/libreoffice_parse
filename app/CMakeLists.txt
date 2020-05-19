@@ -122,7 +122,7 @@ if(OOOSDK_DIR)
     endif (NOT OOOSDK_LIBRARIES)
     set(OOOSDK_FOUND true)
     set(OOOSDK_INCLUDE_DIRS ${CPPUHELPER_INCLUDE_DIR} ${_OOOINCLUDE})
-    message(STATUS, "app include dirs are ${OOOSDK_INCLUDE_DIRS}")
+    message(STATUS "app include dirs are ${OOOSDK_INCLUDE_DIRS}")
 else(OOOSDK_DIR)
     set(OOOSDK_ERROR "Could not find sdk/bin/cppumaker
             or program/offapi.rdb for OOoSDK.")
