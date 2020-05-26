@@ -127,14 +127,18 @@ void UnoMainWindow::slotOpen() {
 #if _UNO_DEBUG_==1
     Reference< XInterface > xTestOutput = _unoFObj->getSimpleFileAccess();
     Reference< XSimpleFileAccess > xSimpleFileAcc (xTestOutput, UNO_QUERY );
-    qDebug() << __PRETTY_FUNCTION__ << "File access is " << xSimpleFileAcc.is();
-    OUStringBuffer bufPath;
-    for (int i=0; i<fileUrl.path().length()-12; i++)
-        bufPath.append( fileUrl.path().toStdString().at(i) );
-    bufPath.append( "/test.odt" );
-    Reference< XOutputStream > xOut = xSimpleFileAcc->openFileWrite( bufPath.toString() );
-    cerr << __PRETTY_FUNCTION__ << bufPath.toString() << endl;
-    qDebug() << __PRETTY_FUNCTION__ << "XOutputStream is " << xOut.is();
+    bool isFileAcc = xSimpleFileAcc.is();
+    qDebug() << __PRETTY_FUNCTION__ << "File access is " << isFileAcc;
+    Reference< XOutputStream > xOut( nullptr );
+    if ( isFileAcc ) {
+        OUStringBuffer bufPath;
+        for (int i=0; i<fileUrl.path().length()-12; i++)
+            bufPath.append( fileUrl.path().toStdString().at(i) );
+        bufPath.append( "/test.odt" );
+        xOut = xSimpleFileAcc->openFileWrite( bufPath.toString() );
+        cerr << __PRETTY_FUNCTION__ << bufPath.toString() << endl;
+        qDebug() << __PRETTY_FUNCTION__ << "XOutputStream is " << xOut.is();
+    }
 #endif
     Reference< XInterface > xInt = _unoFObj->getComponentLoader();
     Reference< XText > xText = xTextDoc->getText();

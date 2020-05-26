@@ -16,6 +16,8 @@
 
 #include <com/sun/star/frame/Desktop.hpp>
 #include <com/sun/star/io/XOutputStream.hpp>
+#include <com/sun/star/io/IOException.hpp>
+#include <com/sun/star/task/ErrorCodeIOException.hpp>
 #include <com/sun/star/ucb/XSimpleFileAccess.hpp>
 #include <com/sun/star/ucb/XSimpleFileAccess2.hpp>
 #include <com/sun/star/text/XTextDocument.hpp>
@@ -150,6 +152,7 @@ Reference< XComponent > unoFileObject::loadFromURL(const QUrl& fileUrl) {
     Reference< XComponent > xComponent = _xComponentLoader->loadComponentFromURL(
         buf.toString(), OUString( "_blank" ), 0,
         Sequence < ::com::sun::star::beans::PropertyValue >() );
+#if _UNO_DEBUG_==1
     _xSimpleFileAccessInterface = Reference< XInterface >(
                 _xMultiComponentFactoryClient->createInstanceWithContext(
                     "com.sun.star.ucb.SimpleFileAccess",
@@ -158,6 +161,8 @@ Reference< XComponent > unoFileObject::loadFromURL(const QUrl& fileUrl) {
     Reference< XSimpleFileAccess > xSF ( _xSimpleFileAccessInterface, UNO_QUERY );
     _xStorable = Reference< XStorable >( xComponent, UNO_QUERY );
     qDebug() << __PRETTY_FUNCTION__ << "Storable is " << _xStorable.is();
+#endif
+    qDebug() << __PRETTY_FUNCTION__ << "Required component is " << xComponent.is();
     return xComponent;
 }
 
@@ -286,7 +291,13 @@ void unoFileObject::saveWorkFile(QUrl saveFileUrl) {
     qDebug () << __PRETTY_FUNCTION__ << saveFileUrl << isFileExist;
     cerr << __PRETTY_FUNCTION__ << sDocUrl << endl;
     Sequence< PropertyValue > props;
-    _xStorable->storeAsURL( sDocUrl, props );
+    try {
+        _xStorable->storeAsURL( sDocUrl, props );
+    }
+    catch( IOException& e ) {
+        cerr << __PRETTY_FUNCTION__ << e.Message << endl;
+        return;
+    }
 }
 
 void unoFileObject::slotTableEditCell(Reference< XTextTable > wTable, int iRow, int jColumn) {
