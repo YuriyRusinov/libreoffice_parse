@@ -51,6 +51,7 @@ using namespace com::sun::star::ucb;
 using namespace com::sun::star::awt;
 using namespace com::sun::star::beans;
 using namespace com::sun::star::lang;
+using cppu::BootstrapException;
 
 using ::rtl::OUString;
 using ::rtl::OUStringBuffer;
@@ -78,7 +79,15 @@ QWidget* unoFileObject::guiView(const QUrl& fileUrl, QWidget* parent, Qt::Window
 }
 
 void unoFileObject::init() {
-    _xComponentContext = Reference< XComponentContext >( ::cppu::bootstrap() );
+    try {
+        _xComponentContext = Reference< XComponentContext >( ::cppu::bootstrap() );
+    }
+    catch(BootstrapException& e) {
+        stringstream strMess;
+        strMess << e.getMessage();
+        qDebug() << __PRETTY_FUNCTION__ << tr("Cannot init context, message is %1").arg(QString::fromStdString(strMess.str()));
+        return;
+    }
     /* Gets the service manager instance to be used (or null). This method has
        been added for convenience, because the service manager is a often used
        object.
