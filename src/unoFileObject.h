@@ -20,6 +20,8 @@
 #include <rtl/ustrbuf.hxx>
 
 #include <cppu/unotype.hxx>
+#include <cppuhelper/cppuhelperdllapi.h>
+
 #include <com/sun/star/uno/XComponentContext.hpp>
 #include <com/sun/star/lang/XComponent.hpp>
 #include <com/sun/star/lang/XMultiComponentFactory.hpp>
@@ -41,7 +43,7 @@ using namespace com::sun::star::table;
 using ::rtl::OUString;
 using std::vector;
 
-class unoFileObject : public QObject {
+class CPPUHELPER_DLLPUBLIC unoFileObject : public QObject {
 private:
     unoFileObject(QObject* parent=nullptr);
     virtual ~unoFileObject();
