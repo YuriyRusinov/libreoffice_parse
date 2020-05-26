@@ -145,8 +145,7 @@ Reference< XComponent > unoFileObject::loadFromURL(const QUrl& fileUrl) {
     int nlen = fileUrl.toString().length();
     qDebug() << __PRETTY_FUNCTION__ << fileUrl.toString().toStdString().c_str() << nlen;
     OUStringBuffer buf;
-    for (int i=0; i<nlen; i++)
-        buf.append( fileUrl.toString().toStdString().at(i) );
+    buf.append( fileUrl.toString().utf16() );
 
     Reference< XComponent > xComponent = _xComponentLoader->loadComponentFromURL(
         buf.toString(), OUString( "_blank" ), 0,
