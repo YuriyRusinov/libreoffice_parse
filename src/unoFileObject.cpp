@@ -149,9 +149,24 @@ Reference< XComponent > unoFileObject::loadFromURL(const QUrl& fileUrl) {
     OUStringBuffer buf;
     buf.append( fileUrl.toString().utf16() );
 
-    Reference< XComponent > xComponent = _xComponentLoader->loadComponentFromURL(
+    Reference< XComponent > xComponent = nullptr;
+    try {
+      xComponent = _xComponentLoader->loadComponentFromURL(
         buf.toString(), OUString( "_blank" ), 0,
         Sequence < ::com::sun::star::beans::PropertyValue >() );
+    }
+    catch( IOException& e ) {
+      stringstream err_mess;
+      err_mess << e.Message;
+      qDebug() << __PRETTY_FUNCTION__ << "Cannot load file, error is " << QString::fromStdString(err_mess.str());
+      return nullptr;
+    }
+    catch( IllegalArgumentException& e ) {
+      stringstream err_mess;
+      err_mess << e.Message << ", argument position is " << e.ArgumentPosition;
+      qDebug() << __PRETTY_FUNCTION__ << "Cannot load file, error is " << QString::fromStdString(err_mess.str());
+      return nullptr;
+    }
 #if _UNO_DEBUG_==1
     _xSimpleFileAccessInterface = Reference< XInterface >(
                 _xMultiComponentFactoryClient->createInstanceWithContext(
@@ -159,9 +174,9 @@ Reference< XComponent > unoFileObject::loadFromURL(const QUrl& fileUrl) {
                      _xComponentContext )
             );
     Reference< XSimpleFileAccess > xSF ( _xSimpleFileAccessInterface, UNO_QUERY );
+#endif
     _xStorable = Reference< XStorable >( xComponent, UNO_QUERY );
     qDebug() << __PRETTY_FUNCTION__ << "Storable is " << _xStorable.is();
-#endif
     qDebug() << __PRETTY_FUNCTION__ << "Required component is " << xComponent.is();
     return xComponent;
 }
@@ -284,9 +299,11 @@ Reference< XInterface > unoFileObject::getSimpleFileAccess() const {
 
 void unoFileObject::saveWorkFile(QUrl saveFileUrl) {
     OUString sDocUrl;
+    OUStringBuffer buf;
+    buf.append( saveFileUrl.path().utf16() );
     osl::FileBase::getFileURLFromSystemPath(
-                 OUString::createFromAscii(saveFileUrl.path().toUtf8().constData()),sDocUrl);
-    Reference< XSimpleFileAccess2 > xSimpleFileAcc (_xSimpleFileAccessInterface, UNO_QUERY );
+                 buf.toString(), sDocUrl);
+//    Reference< XSimpleFileAccess2 > xSimpleFileAcc (_xSimpleFileAccessInterface, UNO_QUERY );
     bool isFileExist = QFile::exists(saveFileUrl.path());
     qDebug () << __PRETTY_FUNCTION__ << saveFileUrl << isFileExist;
     cerr << __PRETTY_FUNCTION__ << sDocUrl << endl;

@@ -94,8 +94,7 @@ void UnoMainWindow::slotOpen() {
         emit initUnoComponents();
     }
     OUStringBuffer buf;
-    for (int i=0; i<nlen; i++)
-        buf.append( fileUrl.toString().toStdString().at(i) );
+    buf.append( fileUrl.toString().utf16() );
     cerr << __PRETTY_FUNCTION__ << ' ' << buf.toString() << ' ' << fileUrl.toString().toStdString() << endl;
     osl::File osf( buf.toString() );
     osl::FileBase::RC res = osf.open (0);
@@ -123,6 +122,7 @@ void UnoMainWindow::slotOpen() {
     tstStr.writeRawData( ba.constData(), ba.size());
 #endif
     Reference< XComponent > xComponent = _unoFObj->loadFromURL(fileUrl);
+    qDebug() << __PRETTY_FUNCTION__ << tr("xcomponent is %1 loaded").arg( xComponent.is() ? QString() : tr("not"));
     Reference< XTextDocument > xTextDoc (xComponent, UNO_QUERY );
 #if _UNO_DEBUG_==1
     Reference< XInterface > xTestOutput = _unoFObj->getSimpleFileAccess();
@@ -132,8 +132,9 @@ void UnoMainWindow::slotOpen() {
     Reference< XOutputStream > xOut( nullptr );
     if ( isFileAcc ) {
         OUStringBuffer bufPath;
-        for (int i=0; i<fileUrl.path().length()-12; i++)
-            bufPath.append( fileUrl.path().toStdString().at(i) );
+        int nIndex = fileUrl.path().lastIndexOf("/");
+        bufPath.append( fileUrl.path().left(nIndex).utf16() );
+        cerr << __PRETTY_FUNCTION__ << bufPath.toString() << endl;
         bufPath.append( "/test.odt" );
         xOut = xSimpleFileAcc->openFileWrite( bufPath.toString() );
         cerr << __PRETTY_FUNCTION__ << bufPath.toString() << endl;
