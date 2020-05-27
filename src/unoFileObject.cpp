@@ -75,6 +75,7 @@ QWidget* unoFileObject::guiView(const QUrl& fileUrl, QWidget* parent, Qt::Window
     QObject::connect(unoFileW, &unoFileWidget::editTableCell, this, &unoFileObject::slotTableEditCell);
 
     QObject::connect(unoFileW, &unoFileWidget::saveWriterFile, this, &unoFileObject::saveWorkFile);
+    QObject::connect(unoFileW, &unoFileWidget::closeFile, this, &unoFileObject::slotCloseFile);
     QObject::connect(this, &unoFileObject::updateTables, unoFileW, &unoFileWidget::updateTableModel);
 
     return unoFileW;
@@ -156,27 +157,43 @@ Reference< XComponent > unoFileObject::loadFromURL(const QUrl& fileUrl) {
         Sequence < ::com::sun::star::beans::PropertyValue >() );
     }
     catch( IOException& e ) {
-      stringstream err_mess;
-      err_mess << e.Message;
-      qDebug() << __PRETTY_FUNCTION__ << "Cannot load file, error is " << QString::fromStdString(err_mess.str());
-      return nullptr;
+        stringstream err_mess;
+        err_mess << e.Message;
+        qDebug() << __PRETTY_FUNCTION__ << tr("Cannot load file, error is %1").arg (QString::fromStdString(err_mess.str()));
+        return nullptr;
     }
     catch( IllegalArgumentException& e ) {
-      stringstream err_mess;
-      err_mess << e.Message << ", argument position is " << e.ArgumentPosition;
-      qDebug() << __PRETTY_FUNCTION__ << "Cannot load file, error is " << QString::fromStdString(err_mess.str());
-      return nullptr;
+        stringstream err_mess;
+        err_mess << e.Message << ", argument position is " << e.ArgumentPosition;
+        qDebug() << __PRETTY_FUNCTION__ << tr("Cannot load file, error is %1").arg( QString::fromStdString(err_mess.str()) );
+        return nullptr;
+    }
+    catch( Exception& e) {
+        stringstream err_mess;
+        err_mess << e.Message;
+        qDebug() << __PRETTY_FUNCTION__ << tr("Cannot load file, error is %1").arg( QString::fromStdString( err_mess.str() ) );
     }
 #if _UNO_DEBUG_==1
-    _xSimpleFileAccessInterface = Reference< XInterface >(
+    try {
+        _xSimpleFileAccessInterface = Reference< XInterface >(
                 _xMultiComponentFactoryClient->createInstanceWithContext(
                     "com.sun.star.ucb.SimpleFileAccess",
                      _xComponentContext )
             );
-    Reference< XSimpleFileAccess > xSF ( _xSimpleFileAccessInterface, UNO_QUERY );
+    }
+    catch( Exception& e) {
+        stringstream err_mess;
+        err_mess << e.Message;
+        qDebug() << __PRETTY_FUNCTION__ << tr("Cannot get simple file access for debug, error is %1").arg( QString::fromStdString( err_mess.str() ) );
+        _xSimpleFileAccessInterface = nullptr;
+    }
+//    Reference< XSimpleFileAccess > xSF ( _xSimpleFileAccessInterface, UNO_QUERY );
 #endif
+    qDebug() << __PRETTY_FUNCTION__ << "XComponent was loaded ";
     _xStorable = Reference< XStorable >( xComponent, UNO_QUERY );
     qDebug() << __PRETTY_FUNCTION__ << "Storable is " << _xStorable.is();
+    _xCloseable = Reference< XCloseable >( xComponent, UNO_QUERY );
+    qDebug() << __PRETTY_FUNCTION__ << "Closeable is " << _xCloseable.is();
     qDebug() << __PRETTY_FUNCTION__ << "Required component is " << xComponent.is();
     return xComponent;
 }
@@ -298,6 +315,8 @@ Reference< XInterface > unoFileObject::getSimpleFileAccess() const {
 }
 
 void unoFileObject::saveWorkFile(QUrl saveFileUrl) {
+    if( saveFileUrl.isEmpty() )
+        return;
     OUString sDocUrl;
     OUStringBuffer buf;
     buf.append( saveFileUrl.path().utf16() );
@@ -336,4 +355,17 @@ void unoFileObject::slotUpdateCell(Reference< XCell > wCell, QString newText) {
     qDebug() << __PRETTY_FUNCTION__ << QString::fromStdString(textStr.str());
 
     xText->setString( bufText.toString() );
+}
+
+void unoFileObject::slotCloseFile(QUrl fileUrl) {
+    if (fileUrl.isEmpty())
+        return;
+    try {
+        _xCloseable->close(false);
+    }
+    catch( Exception& e ) {
+        stringstream err_mess;
+        err_mess << e.Message;
+        qDebug() << __PRETTY_FUNCTION__ << tr("Cannot close file access, error is %1").arg( QString::fromStdString( err_mess.str() ) );
+    }
 }

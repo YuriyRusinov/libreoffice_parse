@@ -67,6 +67,8 @@ void unoFileWidget::slotFileOpen() {
 
 void unoFileWidget::slotFileClose() {
     qDebug () << __PRETTY_FUNCTION__;
+    if (!_fileUrl.isEmpty())
+        emit closeFile(_fileUrl);
     if (parentWidget())
         parentWidget()->close();
     close();
@@ -184,6 +186,8 @@ void unoFileWidget::updateTableModel(QModelIndex wTableIndex, Reference< XTextTa
 void unoFileWidget::slotSaveFile() {
     qDebug() << __PRETTY_FUNCTION__;
     QUrl saveUrl = QFileDialog::getSaveFileUrl(this, tr("Save file"), QUrl(), tr ("Open Document Text Files (*.odt);;All files (*)"));
+    if (saveUrl.isEmpty())
+        return;
     emit saveWriterFile(saveUrl);
 }
 

@@ -31,6 +31,7 @@
 #include <com/sun/star/frame/XDesktop2.hpp>
 #include <com/sun/star/frame/XStorable.hpp>
 #include <com/sun/star/text/XTextTable.hpp>
+#include <com/sun/star/util/XCloseable.hpp>
 
 using namespace com::sun::star::uno;
 using namespace com::sun::star::lang;
@@ -39,6 +40,7 @@ using namespace com::sun::star::beans;
 using namespace com::sun::star::frame;
 using namespace com::sun::star::text;
 using namespace com::sun::star::table;
+using namespace com::sun::star::util;
 
 using ::rtl::OUString;
 using std::vector;
@@ -71,6 +73,7 @@ private slots:
     void saveWorkFile(QUrl saveFileUrl);
     void slotTableEditCell(Reference< XTextTable > wTable, int iRow, int jColumn);
     void slotUpdateCell(Reference< XCell > wCell, QString newText);
+    void slotCloseFile(QUrl fileUrl);
 
 private:
     //
@@ -92,6 +95,7 @@ private:
     Reference< XInterface > _xSimpleFileAccessInterface;
     Reference< XMultiServiceFactory > _xOfficeServiceManager;
     Reference< XStorable > _xStorable;
+    Reference< XCloseable> _xCloseable;
 
 private:
     Q_OBJECT

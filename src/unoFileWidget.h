@@ -62,6 +62,7 @@ signals:
     void search(QString searchStr, vector< Reference< XTextTable > > searchTables, QStringList tableNames);
     void tableActSignal(QModelIndex tabIndex, Reference< XTextTable > wTable, int tableActCode, int tableCoordPar, int iPar);
     void saveWriterFile(QUrl saveFileUrl);
+    void closeFile(QUrl fileUrl);
     void editTableCell( Reference< XTextTable >, int iRow, int jColumn );
 
 private:

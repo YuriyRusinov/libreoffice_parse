@@ -12,6 +12,7 @@
 #include <QFile>
 #include <QDataStream>
 #include <QMdiSubWindow>
+#include <QMessageBox>
 #include <QUrl>
 #include <QtDebug>
 
@@ -123,6 +124,10 @@ void UnoMainWindow::slotOpen() {
 #endif
     Reference< XComponent > xComponent = _unoFObj->loadFromURL(fileUrl);
     qDebug() << __PRETTY_FUNCTION__ << tr("xcomponent is %1 loaded").arg( xComponent.is() ? QString() : tr("not"));
+    if(!xComponent.is()) {
+        QMessageBox::warning(this, tr("Load file"), tr("Cannot load file %1").arg(fileName), QMessageBox::Ok);
+        return;
+    }
     Reference< XTextDocument > xTextDoc (xComponent, UNO_QUERY );
 #if _UNO_DEBUG_==1
     Reference< XInterface > xTestOutput = _unoFObj->getSimpleFileAccess();

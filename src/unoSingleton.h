@@ -28,6 +28,7 @@ public:
 
 private slots:
     void slotProcEnd(int exitCode, QProcess::ExitStatus exitStatus);
+    void slotChildProcEnd(qint64 procId);
 
 private:
     UnoSingleton(QObject* parent=nullptr);
@@ -36,6 +37,7 @@ private:
     ~UnoSingleton();
 
     QProcess* _sofficeProc;
+    qint64 _procId;
     mutable unoFileObject* _unoFileObj;
 
     static UnoSingleton* _instance;
