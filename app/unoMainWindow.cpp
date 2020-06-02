@@ -128,64 +128,6 @@ void UnoMainWindow::slotOpen() {
         QMessageBox::warning(this, tr("Load file"), tr("Cannot load file %1").arg(fileName), QMessageBox::Ok);
         return;
     }
-/*    Reference< XTextDocument > xTextDoc (xComponent, UNO_QUERY );
-#if _UNO_DEBUG_==1
-    Reference< XInterface > xTestOutput = _unoFObj->getSimpleFileAccess();
-    Reference< XSimpleFileAccess > xSimpleFileAcc (xTestOutput, UNO_QUERY );
-    bool isFileAcc = xSimpleFileAcc.is();
-    qDebug() << __PRETTY_FUNCTION__ << "File access is " << isFileAcc;
-    Reference< XOutputStream > xOut( nullptr );
-    if ( isFileAcc ) {
-        OUStringBuffer bufPath;
-        int nIndex = fileUrl.path().lastIndexOf("/");
-        bufPath.append( fileUrl.path().left(nIndex).utf16() );
-        cerr << __PRETTY_FUNCTION__ << bufPath.toString() << endl;
-        bufPath.append( "/test.odt" );
-        xOut = xSimpleFileAcc->openFileWrite( bufPath.toString() );
-        cerr << __PRETTY_FUNCTION__ << bufPath.toString() << endl;
-        qDebug() << __PRETTY_FUNCTION__ << "XOutputStream is " << xOut.is();
-    }
-#endif
-    Reference< XInterface > xInt = _unoFObj->getComponentLoader();
-    Reference< XText > xText = xTextDoc->getText();
-//
-//  For debug purposes
-//
-//    cerr << __PRETTY_FUNCTION__ << " " << xText->getString() << endl;
-    stringstream textStr;
-    textStr << xText->getString();
-    Reference< XMultiServiceFactory > xMultiServ( xTextDoc, UNO_QUERY );
-    qDebug() << __PRETTY_FUNCTION__ << "Document multiservice factory is " << xMultiServ.get();
-#if _UNO_DEBUG_==1
-    qDebug() << __PRETTY_FUNCTION__ << "Text document is " << xTextDoc.get() << "Test output stream is " << xOut.is();
-    Sequence< sal_Int8 > bseq (textStr.str().size());
-    for (int i=0; i<textStr.str().size(); i++)
-        bseq[i] = textStr.str().at(i);
-
-    xOut->writeBytes(bseq);
-#endif
-
-    Reference< XTextTablesSupplier > xTextTablesSuppl (xTextDoc, UNO_QUERY );
-    qDebug() << __PRETTY_FUNCTION__ << "Tables supplier is " << xTextTablesSuppl.get();
-    Reference< XNameAccess > xNamedTables = xTextTablesSuppl->getTextTables();
-    qDebug() << __PRETTY_FUNCTION__ << "Named Tables list is " << xNamedTables.get();
-    Sequence < ::rtl::OUString > tSeq = xNamedTables->getElementNames();
-    qDebug() << __PRETTY_FUNCTION__ << "Number of tables is " << tSeq.getLength();
-    QStringList tableNames;
-    vector< Reference< XTextTable > > xTablesVec;
-    for (::rtl::OUString* ptab = tSeq.begin();
-            ptab != tSeq.end();
-            ptab++) {
-        stringstream tableStr;
-        tableStr << *ptab;
-        QString tableName = QString::fromStdString(tableStr.str());
-        tableNames.append(tableName);
-        Any any = xNamedTables->getByName(*ptab);
-        Reference< XTextTable > xTable(any, UNO_QUERY);
-        xTablesVec.push_back( xTable );
-        qDebug() << __PRETTY_FUNCTION__ << tableName << xTable.get();
-    }
-*/
     QAbstractItemModel* tModel = _unoFObj->getTablesModel();
     //new unoTablesModel(tableNames, xTablesVec);
 
