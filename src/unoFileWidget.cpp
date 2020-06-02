@@ -33,17 +33,13 @@ unoFileWidget::unoFileWidget(const QUrl& fileUrl, QWidget* parent, Qt::WindowFla
     : QWidget(parent, flags),
     _fileUrl(fileUrl),
     _tbActions(new QToolBar),
-    _spView(new QSplitter),
-    _fileEditW(new QTextEdit),
     _wTables(new QWidget),
     _tvTables(new QTreeView)
 {
     qDebug() << __PRETTY_FUNCTION__ << _fileUrl;
     QGridLayout * gridLay = new QGridLayout(this);
     gridLay->addWidget(_tbActions, 0, 0, 1, 2);
-    gridLay->addWidget(_spView, 1, 0, 1, 2);
-    _spView->addWidget(_fileEditW);
-    _spView->addWidget(_wTables);
+    gridLay->addWidget(_wTables, 1, 0, 1, 2);
 
     QHBoxLayout* hTableLay = new QHBoxLayout (_wTables);
     hTableLay->addWidget(_tvTables);
@@ -56,8 +52,6 @@ unoFileWidget::unoFileWidget(const QUrl& fileUrl, QWidget* parent, Qt::WindowFla
 unoFileWidget::~unoFileWidget() {
     delete _tvTables;
     delete _wTables;
-    delete _fileEditW;
-    delete _spView;
     delete _tbActions;
 }
 
@@ -72,10 +66,6 @@ void unoFileWidget::slotFileClose() {
     if (parentWidget())
         parentWidget()->close();
     close();
-}
-
-void unoFileWidget::setText(const QString& text) {
-    _fileEditW->setPlainText(text);
 }
 
 void unoFileWidget::setTablesModel(QAbstractItemModel* tableListModel) {

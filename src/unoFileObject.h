@@ -45,6 +45,8 @@ using namespace com::sun::star::util;
 using ::rtl::OUString;
 using std::vector;
 
+class QAbstractItemModel;
+
 class CPPUHELPER_DLLPUBLIC unoFileObject : public QObject {
 private:
     unoFileObject(QObject* parent=nullptr);
@@ -52,6 +54,7 @@ private:
 
 public:
     QWidget* guiView(const QUrl& fileUrl, QWidget* parent=nullptr, Qt::WindowFlags flags=Qt::WindowFlags());
+    QAbstractItemModel* getTablesModel(QObject *parent = nullptr);
 
     friend class UnoSingleton;
 
@@ -92,6 +95,7 @@ private:
     Reference< XPropertySet > _xPropSet;
     Reference< XMultiComponentFactory > _xMultiComponentFactoryServer;
     Reference< XDesktop2 > _xComponentLoader;
+    Reference< XComponent > _xComponent;
     Reference< XInterface > _xSimpleFileAccessInterface;
     Reference< XMultiServiceFactory > _xOfficeServiceManager;
     Reference< XStorable > _xStorable;

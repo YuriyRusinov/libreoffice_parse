@@ -128,7 +128,7 @@ void UnoMainWindow::slotOpen() {
         QMessageBox::warning(this, tr("Load file"), tr("Cannot load file %1").arg(fileName), QMessageBox::Ok);
         return;
     }
-    Reference< XTextDocument > xTextDoc (xComponent, UNO_QUERY );
+/*    Reference< XTextDocument > xTextDoc (xComponent, UNO_QUERY );
 #if _UNO_DEBUG_==1
     Reference< XInterface > xTestOutput = _unoFObj->getSimpleFileAccess();
     Reference< XSimpleFileAccess > xSimpleFileAcc (xTestOutput, UNO_QUERY );
@@ -185,8 +185,9 @@ void UnoMainWindow::slotOpen() {
         xTablesVec.push_back( xTable );
         qDebug() << __PRETTY_FUNCTION__ << tableName << xTable.get();
     }
-
-    QAbstractItemModel* tModel = new unoTablesModel(tableNames, xTablesVec);
+*/
+    QAbstractItemModel* tModel = _unoFObj->getTablesModel();
+    //new unoTablesModel(tableNames, xTablesVec);
 
     //Reference< XTextTable > xTextTables ( XTextTable(
     //        xMultiServ->createInstance(
@@ -195,7 +196,7 @@ void UnoMainWindow::slotOpen() {
     //qDebug() << __PRETTY_FUNCTION__ << xTextTables.get();
 
     unoFileWidget* w = qobject_cast<unoFileWidget*>(_unoFObj->guiView(fileUrl));
-    w->setText(QString::fromStdString(textStr.str()));
+    //w->setText(QString::fromStdString(textStr.str()));
     w->setTablesModel(tModel);
     slotAddWindow(w);
     operator delete( fileContent );

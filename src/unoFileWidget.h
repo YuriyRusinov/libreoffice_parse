@@ -34,7 +34,6 @@ public:
     explicit unoFileWidget(const QUrl& fileUrl, QWidget* parent=nullptr, Qt::WindowFlags flags=Qt::WindowFlags());
     virtual ~unoFileWidget();
 
-    void setText(const QString& text);
     void setTablesModel(QAbstractItemModel* tableListModel);
     enum tableCellParams {
         tableRow,
@@ -74,8 +73,6 @@ private:
 private:
     QUrl _fileUrl;
     QToolBar* _tbActions;
-    QSplitter* _spView;
-    QTextEdit* _fileEditW;
     QWidget* _wTables;
     QTreeView* _tvTables;
 

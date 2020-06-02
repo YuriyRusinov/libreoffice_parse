@@ -29,6 +29,8 @@
 #include <com/sun/star/table/XCellRange.hpp>
 #include <com/sun/star/table/XTable.hpp>
 #include <com/sun/star/lang/IndexOutOfBoundsException.hpp>
+#include <com/sun/star/text/XTextTablesSupplier.hpp>
+#include <com/sun/star/container/XNameAccess.hpp>
 
 #include <QFile>
 #include <QPlainTextEdit>
@@ -39,6 +41,7 @@
 #include "unoSearchResultsForm.h"
 #include "unoSearchResultsModel.h"
 #include "unoCellEditor.h"
+#include "unoTablesModel.h"
 
 using std::cerr;
 using std::endl;
@@ -53,6 +56,8 @@ using namespace com::sun::star::ucb;
 using namespace com::sun::star::awt;
 using namespace com::sun::star::beans;
 using namespace com::sun::star::lang;
+using namespace com::sun::star::container;
+
 using cppu::BootstrapException;
 
 using ::rtl::OUString;
@@ -142,6 +147,7 @@ void unoFileObject::init() {
     // get an instance of the remote office desktop UNO service
     // and query the XComponentLoader interface
     _xComponentLoader = Reference < XDesktop2 >( xDesktop, UNO_QUERY);//Desktop::create(_xComponentContext) );
+    _xComponent = nullptr;
 }
 
 Reference< XComponent > unoFileObject::loadFromURL(const QUrl& fileUrl) {
@@ -150,9 +156,11 @@ Reference< XComponent > unoFileObject::loadFromURL(const QUrl& fileUrl) {
     OUStringBuffer buf;
     buf.append( fileUrl.toString().utf16() );
 
-    Reference< XComponent > xComponent = nullptr;
+    if ( _xComponent.is() ) {
+        _xComponent.clear();
+    }
     try {
-      xComponent = _xComponentLoader->loadComponentFromURL(
+      _xComponent = _xComponentLoader->loadComponentFromURL(
         buf.toString(), OUString( "_blank" ), 0,
         Sequence < ::com::sun::star::beans::PropertyValue >() );
     }
@@ -190,12 +198,12 @@ Reference< XComponent > unoFileObject::loadFromURL(const QUrl& fileUrl) {
 //    Reference< XSimpleFileAccess > xSF ( _xSimpleFileAccessInterface, UNO_QUERY );
 #endif
     qDebug() << __PRETTY_FUNCTION__ << "XComponent was loaded ";
-    _xStorable = Reference< XStorable >( xComponent, UNO_QUERY );
+    _xStorable = Reference< XStorable >( _xComponent, UNO_QUERY );
     qDebug() << __PRETTY_FUNCTION__ << "Storable is " << _xStorable.is();
-    _xCloseable = Reference< XCloseable >( xComponent, UNO_QUERY );
+    _xCloseable = Reference< XCloseable >( _xComponent, UNO_QUERY );
     qDebug() << __PRETTY_FUNCTION__ << "Closeable is " << _xCloseable.is();
-    qDebug() << __PRETTY_FUNCTION__ << "Required component is " << xComponent.is();
-    return xComponent;
+    qDebug() << __PRETTY_FUNCTION__ << "Required component is " << _xComponent.is();
+    return _xComponent;
 }
 
 void unoFileObject::initUnoComponents() {
@@ -368,4 +376,38 @@ void unoFileObject::slotCloseFile(QUrl fileUrl) {
         err_mess << e.Message;
         qDebug() << __PRETTY_FUNCTION__ << tr("Cannot close file access, error is %1").arg( QString::fromStdString( err_mess.str() ) );
     }
+}
+
+QAbstractItemModel* unoFileObject::getTablesModel(QObject *parent) {
+    if (!_xComponent.is())
+        return nullptr;
+
+    Reference< XTextDocument > xTextDoc (_xComponent, UNO_QUERY );
+    if (!xTextDoc.is())
+        return nullptr;
+    Reference< XTextTablesSupplier > xTextTablesSuppl (xTextDoc, UNO_QUERY );
+    if (!xTextTablesSuppl.is())
+        return nullptr;
+    Reference< XNameAccess > xNamedTables = xTextTablesSuppl->getTextTables();
+    if (!xNamedTables.is())
+        return nullptr;
+    Sequence < ::rtl::OUString > tSeq = xNamedTables->getElementNames();
+    QStringList tableNames;
+    vector< Reference< XTextTable > > xTablesVec;
+    for (::rtl::OUString* ptab = tSeq.begin();
+            ptab != tSeq.end();
+            ptab++) {
+        stringstream tableStr;
+        tableStr << *ptab;
+        QString tableName = QString::fromStdString(tableStr.str());
+        tableNames.append(tableName);
+        Any any = xNamedTables->getByName(*ptab);
+        Reference< XTextTable > xTable(any, UNO_QUERY);
+        xTablesVec.push_back( xTable );
+        qDebug() << __PRETTY_FUNCTION__ << tableName << xTable.get();
+    }
+
+    QAbstractItemModel* tModel = new unoTablesModel(tableNames, xTablesVec);
+
+    return tModel;
 }
