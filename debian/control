@@ -1,0 +1,12 @@
+Source: qtuno
+Section: unknown
+Priority: optional
+Maintainer: "Yury Rusinov" <Y.L.Rusinov@rubin-spb.ru>
+Build-Depends: libqt5core5a, libqt5gui5, libqt5widgets5, libreoffice-writer, cmake
+Standards-Version: 4.1.4
+
+Package: qtuno
+Architecture: any
+Multi-Arch: foreign
+Depends: libqt5core5a, libqt5gui5, libqt5widgets5, libreoffice-writer
+Description: Reading of odt files and analysing their tables.
