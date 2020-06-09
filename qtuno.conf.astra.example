@@ -1,0 +1,6 @@
+OOO_SDK_HOME = /usr
+
+OOO_SDK_INCLUDE = /usr/include/libreoffice
+OOO_SDK_LIB = /usr/lib/libreoffice/sdk/lib
+OOO_SDK_PROGRAM = /usr/lib/libreoffice/sdk/bin/cppumaker
+OOO_SDK_DIR = /usr/lib/libreoffice/program

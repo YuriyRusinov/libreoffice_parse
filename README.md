@@ -11,6 +11,11 @@ System requirements:
    Qt 5.11 или выше
    cmake 3.7 или выше
 
+Сборка через qmake
+    cp qtuno.conf.astra.example qtuno.conf
+    qmake
+    make
+
 Compile & install из исходных кодов:
     mkdir build
     cd build
